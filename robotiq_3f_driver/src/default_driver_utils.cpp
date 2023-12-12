@@ -264,7 +264,7 @@ constexpr uint8_t gSTA_mask = 0b11000000;
 MotionStatus get_motion_status(const uint8_t& reg)
 {
   static const std::unordered_map<uint8_t, MotionStatus> map{ { 0b00000000, MotionStatus::IN_MOTION },
-                                                              { 0b01000000, MotionStatus::STOPPED_ONE_OR_TWO_URNEACHED },
+                                                              { 0b01000000, MotionStatus::STOPPED_ONE_OR_TWO_UNREACHED },
                                                               { 0b10000000, MotionStatus::STOPPED_THREE_UNREACHED },
                                                               { 0b11000000, MotionStatus::STOPPED_REACHED } };
   return map.at(reg & default_driver_utils::gSTA_mask);
@@ -274,7 +274,7 @@ const std::string motion_status_to_string(const MotionStatus motionStatus)
 {
   static std::map<MotionStatus, std::string> map = {
     { MotionStatus::IN_MOTION, "IN_MOTION" },
-    { MotionStatus::STOPPED_ONE_OR_TWO_URNEACHED, "STOPPED_ONE_OR_TWO_URNEACHED" },
+    { MotionStatus::STOPPED_ONE_OR_TWO_UNREACHED, "STOPPED_ONE_OR_TWO_UNREACHED" },
     { MotionStatus::STOPPED_THREE_UNREACHED, "STOPPED_THREE_UNREACHED" },
     { MotionStatus::STOPPED_REACHED, "STOPPED_REACHED" }
   };

@@ -46,7 +46,7 @@ namespace robotiq_3f_driver
 const auto kLogger = rclcpp::get_logger("Robotiq3fGripperHardwareInterface");
 
 constexpr auto kGripCommandInterfaceName = "cmd";
-constexpr auto kGripStateInterfacename = "state";
+constexpr auto kGripStateInterfaceName = "state";
 
 constexpr auto kObjectDetectionStateInterfaceName = "object_detection_status";
 
@@ -139,8 +139,9 @@ std::vector<hardware_interface::StateInterface> Robotiq3fGripperHardwareInterfac
   RCLCPP_DEBUG(kLogger, "export_state_interfaces");
   std::vector<hardware_interface::StateInterface> state_interfaces;
   try
-      state_interfaces.emplace_back(hardware_interface::StateInterface(
-          "finger_a", hardware_interface::HW_IF_POSITION, &safe_state_.state.load().finger_a_position));
+  {
+    state_interfaces.emplace_back(hardware_interface::StateInterface("finger_a", hardware_interface::HW_IF_POSITION,
+                                                                     &safe_state_.state.load().finger_a_position));
   }
   catch (const std::exception& ex)
   {
@@ -221,7 +222,7 @@ Robotiq3fGripperHardwareInterface::on_deactivate([[maybe_unused]] const rclcpp_l
 }
 
 hardware_interface::return_type Robotiq3fGripperHardwareInterface::read([[maybe_unused]] const rclcpp::Time& time,
-                                                                    [[maybe_unused]] const rclcpp::Duration& period)
+                                                                        [[maybe_unused]] const rclcpp::Duration& period)
 {
   // A state interface cannot be linked to atomic double values, only
   // double values. We must transfer the content of the atomic value, which is
@@ -241,7 +242,7 @@ hardware_interface::return_type Robotiq3fGripperHardwareInterface::read([[maybe_
 }
 
 hardware_interface::return_type Robotiq3fGripperHardwareInterface::write([[maybe_unused]] const rclcpp::Time& time,
-                                                                     [[maybe_unused]] const rclcpp::Duration& period)
+                                                                         [[maybe_unused]] const rclcpp::Duration& period)
 {
   // A command interface cannot be linked to atomic double values, only
   // double values. We must transfer the content of the command interface

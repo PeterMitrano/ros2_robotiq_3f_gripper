@@ -72,7 +72,6 @@ private:
   std::vector<uint8_t> send(const std::vector<uint8_t>& request, size_t response_size) const;
 
   std::unique_ptr<Serial> serial_ = nullptr;
-  uint8_t slave_address_ = 0x09;
-  GraspingMode grasping_mode_ = GraspingMode::BASIC;
+  uint8_t slave_address_ = 0x00;
 };
 }  // namespace robotiq_3f_driver

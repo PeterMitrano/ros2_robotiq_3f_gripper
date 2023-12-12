@@ -65,7 +65,7 @@ enum class ActionStatus
 enum class MotionStatus // gSTA
 {
   IN_MOTION,
-  STOPPED_ONE_OR_TWO_URNEACHED,
+  STOPPED_ONE_OR_TWO_UNREACHED,
   STOPPED_THREE_UNREACHED,
   STOPPED_REACHED
 };
@@ -109,6 +109,23 @@ struct FullGripperStatus
   GoTo go_to_status;
   GripperStatus gripper_status;
   MotionStatus motion_status;
+  GripperFaultStatus fault_status;
+  uint8_t finger_a_position_cmd_echo;
+  uint8_t finger_a_position;
+  uint8_t finger_a_current;
+  uint8_t finger_b_position_cmd_echo;
+  uint8_t finger_b_position;
+  uint8_t finger_b_current;
+  uint8_t finger_c_position_cmd_echo;
+  uint8_t finger_c_position;
+  uint8_t finger_c_current;
+  uint8_t scissor_position_cmd_echo;
+  uint8_t scissor_position;
+  uint8_t scissor_current;
+  ObjectDetectionStatus finger_a_object_detection_status;
+  ObjectDetectionStatus finger_b_object_detection_status;
+  ObjectDetectionStatus finger_c_object_detection_status;
+  ObjectDetectionStatus scissor_object_detection_status;
 };
 
 /**
@@ -140,32 +157,6 @@ public:
   virtual void deactivate() = 0;
 
   virtual FullGripperStatus get_full_status() = 0;
-  /**
-   * gACT: initialization status
-   */
-  virtual uint8_t get_activation_status() = 0;
-  // TODO: add register names
-  virtual uint8_t get_operation_mode_status() = 0;
-  virtual uint8_t get_action_status() = 0;
-  virtual uint8_t get_gripper_status() = 0;
-  virtual uint8_t get_motion_status() = 0;
-  virtual uint8_t get_fault_status() = 0;
-  virtual uint8_t get_finger_a_commanded_position() = 0;
-  virtual uint8_t get_finger_a_position() = 0;
-  virtual uint8_t get_finger_a_current() = 0;
-  virtual uint8_t get_finger_a_object_status() = 0;
-  virtual uint8_t get_finger_b_commanded_position() = 0;
-  virtual uint8_t get_finger_b_position() = 0;
-  virtual uint8_t get_finger_b_current() = 0;
-  virtual uint8_t get_finger_b_object_status() = 0;
-  virtual uint8_t get_finger_c_commanded_position() = 0;
-  virtual uint8_t get_finger_c_position() = 0;
-  virtual uint8_t get_finger_c_current() = 0;
-  virtual uint8_t get_finger_c_object_status() = 0;
-  virtual uint8_t get_scissor_commanded_position() = 0;
-  virtual uint8_t get_scissor_position() = 0;
-  virtual uint8_t get_scissor_current() = 0;
-  virtual uint8_t get_scissor_object_status() = 0;
 
   virtual void set_activate(uint8_t activate) = 0;  // akin to "initialization"
   virtual void set_grasping_mode(uint8_t grasping_mode) = 0;

@@ -47,21 +47,6 @@ const auto kLogger = rclcpp::get_logger("DefaultDriverFactory");
 constexpr auto kSlaveAddressParamName = "slave_address";
 constexpr uint8_t kSlaveAddressParamDefault = 0x9;
 
-constexpr auto kModeParamName = "mode";
-constexpr auto kModeParamDefault = GripperMode::AutomaticMode;
-
-constexpr auto kGripMaxVacuumPressureParamName = "grip_max_vacuum_pressure";
-constexpr auto kGripMaxVacuumPressureParamDefault = -100.0;  // kPA
-
-constexpr auto kGripMinVacuumPressureParamName = "grip_min_vacuum_pressure";
-constexpr auto kGripMinVacuumPressureParamDefault = -10.0;  // kPA
-
-constexpr auto kGripTimeoutParamName = "grip_timeout";
-constexpr auto kGripTimeoutParamDefault = 0.5;
-
-constexpr auto kReleaseTimeoutParamName = "release_timeout";
-constexpr auto kReleaseTimeoutParamDefault = 0.5;
-
 constexpr auto kUseDummyParamName = "use_dummy";
 constexpr auto kUseDummyParamDefault = "False";  // TODO(kineticsystem): make this so it's not case sensitive
 
@@ -78,54 +63,14 @@ robotiq_3f_driver::DefaultDriverFactory::create(const hardware_interface::Hardwa
           kSlaveAddressParamDefault;
   RCLCPP_INFO(kLogger, "slave_address: %d", slave_address);
 
-  RCLCPP_INFO(kLogger, "Reading mode...");
-  GripperMode mode = info.hardware_parameters.count(kModeParamName) ?
-                         info.hardware_parameters.at(kModeParamName) ==
-                                 default_driver_utils::gripper_mode_to_string(GripperMode::AdvancedMode) ?
-                         GripperMode::AdvancedMode :
-                         kModeParamDefault :
-                         kModeParamDefault;
-  RCLCPP_INFO(kLogger, "mode: %s", default_driver_utils::gripper_mode_to_string(mode).c_str());
-
-  RCLCPP_INFO(kLogger, "Reading grip max vacuum pressure...");
-  double grip_max_vacuum_pressure = info.hardware_parameters.count(kGripMaxVacuumPressureParamName) ?
-                                        std::stod(info.hardware_parameters.at(kGripMaxVacuumPressureParamName)) :
-                                        kGripMaxVacuumPressureParamDefault;
-  RCLCPP_INFO(kLogger, "%s: %fkPa", kGripMaxVacuumPressureParamName, grip_max_vacuum_pressure);
-
-  RCLCPP_INFO(kLogger, "Reading grip min vacuum pressure...");
-  double grip_min_vacuum_pressure = info.hardware_parameters.count(kGripMinVacuumPressureParamName) ?
-                                        std::stod(info.hardware_parameters.at(kGripMinVacuumPressureParamName)) :
-                                        kGripMinVacuumPressureParamDefault;
-  RCLCPP_INFO(kLogger, "%s: %fkPa", kGripMinVacuumPressureParamName, grip_min_vacuum_pressure);
-
-  RCLCPP_INFO(kLogger, "Reading grip timeout...");
-  double grip_timeout = info.hardware_parameters.count(kGripTimeoutParamName) ?
-                            std::stod(info.hardware_parameters.at(kGripTimeoutParamName)) :
-                            kGripTimeoutParamDefault;
-  RCLCPP_INFO(kLogger, "%s: %fs", kGripTimeoutParamName, grip_timeout);
-
-  RCLCPP_INFO(kLogger, "Reading release timeout...");
-  double release_timeout = info.hardware_parameters.count(kReleaseTimeoutParamName) ?
-                               std::stod(info.hardware_parameters.at(kReleaseTimeoutParamName)) :
-                               kReleaseTimeoutParamDefault;
-  RCLCPP_INFO(kLogger, "%s: %fs", kReleaseTimeoutParamName, release_timeout);
-
   auto driver = create_driver(info);
   driver->set_slave_address(slave_address);
-  driver->set_mode(mode);
-  driver->set_grip_max_vacuum_pressure(grip_max_vacuum_pressure);
-  driver->set_grip_min_vacuum_pressure(grip_min_vacuum_pressure);
-  driver->set_grip_timeout(
-      std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::duration<double>(grip_timeout)));
-  driver->set_release_timeout(
-      std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::duration<double>(release_timeout)));
   return driver;
 }
 
 std::unique_ptr<Driver> DefaultDriverFactory::create_driver(const hardware_interface::HardwareInfo& info) const
 {
-  // We give the user an option to startup a dummy gripper for testing purposes.
+  // We give the user an option to start up a dummy gripper for testing purposes.
   if (info.hardware_parameters.count(kUseDummyParamName) &&
       to_lower(info.hardware_parameters.at(kUseDummyParamName)) != to_lower(kUseDummyParamDefault))
   {

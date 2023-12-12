@@ -53,27 +53,48 @@ namespace robotiq_3f_driver
 // We use this structure to hold our command interface values.
 struct Command
 {
-  double grip_cmd;
+  double finger_a_position;
+  double finger_b_position;
+  double finger_c_position;
+  double scissor_position;
 };
 
 // We use this structure to hold a thread-safe copy of our command interface values.
 struct SafeCommand
 {
-  std::atomic<double> grip_cmd;
+  std::atomic<Command> cmd;
 };
 
 // We use this structure to hold our state interface values.
 struct State
 {
-  double grip_cmd;
-  double object_detection_status;
+  FullGripperStatus status;
+
+  double finger_a_position_cmd_echo;
+  double finger_a_position;
+  double finger_a_current;
+  ObjectDetectionStatus finger_a_object_detection_status;
+
+  double finger_b_position_cmd_echo;
+  double finger_b_position;
+  double finger_b_current;
+  ObjectDetectionStatus finger_b_object_detection_status;
+
+  double finger_c_position_cmd_echo;
+  double finger_c_position;
+  double finger_c_current;
+  ObjectDetectionStatus finger_c_object_detection_status;
+
+  double scissor_position_cmd_echo;
+  double scissor_position;
+  double scissor_current;
+  ObjectDetectionStatus scissor_object_detection_status;
 };
 
 // We use this structure to hold a thread-safe copy of our state interface values.
 struct SafeState
 {
-  std::atomic<double> grip_cmd;
-  std::atomic<double> object_detection_status;
+  std::atomic<State> state;
 };
 
 class Robotiq3fGripperHardwareInterface : public hardware_interface::SystemInterface
@@ -164,27 +185,15 @@ private:
   // Factory to create the interface to interact with the hardware using the serial port.
   std::unique_ptr<DriverFactory> driver_factory_;
 
-  // We use a thread to read/write to the driver so that we dont block the hardware_interface read/write.
+  // We use a thread to read/write to the driver so that we don't block the hardware_interface read/write.
   std::thread communication_thread_;
   std::atomic<bool> communication_thread_is_running_;
   void background_task();
 
-  // This stores the double values of our GPIO command interfaces.
-  Command gripper_cmds_{ default_driver_utils::regulate_action_to_double(GripperRegulateAction::StopVacuumGenerator) };
+  // This stores thread-safe copies of command and state, since we use a background thread to constantly read/write to
+  // the hardware
+  SafeCommand safe_cmd_;
+  SafeState safe_state_;
 
-  // This stores thread-safe copies of our GPIO command interfaces values.
-  // This is required because a command interface cannot be linked to an atomic double.
-  SafeCommand safe_gripper_cmd_{ default_driver_utils::regulate_action_to_double(
-      GripperRegulateAction::StopVacuumGenerator) };
-
-  // This stores the double values of our GPIO state interfaces.
-  State gripper_status_{ default_driver_utils::regulate_action_to_double(GripperRegulateAction::StopVacuumGenerator),
-                         default_driver_utils::object_detection_to_double(ObjectDetectionStatus::Unknown) };
-
-  // This stores thread-safe copies of our GPIO state interfaces values.
-  // This is required because a command interface cannot be linked to an atomic double.
-  SafeState safe_gripper_status_{ default_driver_utils::regulate_action_to_double(
-                                      GripperRegulateAction::StopVacuumGenerator),
-                                  default_driver_utils::object_detection_to_double(ObjectDetectionStatus::Unknown) };
 };
 }  // namespace robotiq_3f_driver

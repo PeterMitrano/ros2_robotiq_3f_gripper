@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <robot name="example_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:include filename="$(find epick_description)/urdf/epick_single_suction_cup.xacro"/>
+  <xacro:include filename="$(find robotiq_3f_description)/urdf/robotiq_3f_gripper.xacro"/>
 
   <link name="world"/>
-  <xacro:epick_single_suction_cup parent="world" use_fake_hardware="false"/>
+  <xacro:robotiq_3f_gripper parent="world" use_fake_hardware="false"/>
 
 </robot>

@@ -5,7 +5,7 @@ controller_manager:
   ros__parameters:
     update_rate: 30 # Hz
 
-    epick_gripper_action_controller:
-      type: robotiq_3f_controllers/EpickGripperActionController
-    epick_status_publisher_controller:
-      type: robotiq_3f_controllers/EpickStatusPublisherController
+    robotiq_3f_gripper_action_controller:
+      type: robotiq_3f_controllers/Robotiq3fGripperActionController
+    robotiq_3f_status_publisher_controller:
+      type: robotiq_3f_controllers/Robotiq3fStatusPublisherController

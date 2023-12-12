@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="robotiq_3f_driver_ros2_control"
+                 params="name use_fake_hardware:=true
+                       usb_port:=/dev/ttyUSB0
+                       baud_rate:=115200
+                       timeout:=0.2
+                       slave_address:=0x9">
+
+        <ros2_control name="${name}" type="system">
+            <hardware>
+                <plugin>robotiq_3f_driver/Robotiq3fGripperHardwareInterface</plugin>
+
+                <!-- Serial connection parameters ////////////////////////////////// -->
+
+                <param name="usb_port">${usb_port}</param>
+                <param name="baud_rate">${baud_rate}</param>
+                <param name="timeout">${timeout}</param>
+
+                <!-- Gripper parameters /////////////////////////////////////////// -->
+
+                <!-- Set use_dummy to true to connect to a dummy driver for testing purposes. -->
+                <param name="use_dummy">${use_fake_hardware}</param>
+
+                <!-- The address of the gripper. -->
+                <param name="slave_address">${slave_address}</param>
+
+            </hardware>
+
+            <joint name="finger_a">
+                <command_interface name="position"/>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/> <!-- current -->
+            </joint>
+
+            <joint name="finger_b">
+                <command_interface name="position"/>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/> <!-- current -->
+            </joint>
+
+            <joint name="finger_c">
+                <command_interface name="position"/>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/> <!-- current -->
+            </joint>
+
+        </ros2_control>
+
+    </xacro:macro>
+</robot>

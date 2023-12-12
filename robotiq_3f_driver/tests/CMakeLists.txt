@@ -21,7 +21,7 @@ ament_add_gmock(test_default_driver
 target_include_directories(test_default_driver
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
 )
-target_link_libraries(test_default_driver robotic_3f_driver)
+target_link_libraries(test_default_driver robotiq_3f_driver)
 
 ###############################################################################
 # test_robotiq_3f_gripper_hardware_interface

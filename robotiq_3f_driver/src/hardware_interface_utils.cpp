@@ -115,7 +115,7 @@ get_joints_state_interface(std::string joint_name, std::string interface_name,
                            const hardware_interface::HardwareInfo& info)
 {
   auto joint_component = std::find_if(info.joints.begin(), info.joints.end(),
-                                      [&joint_name](const auto& gpio) { return gpio.name == joint_name; });
+                                      [&joint_name](const auto& joint) { return joint.name == joint_name; });
 
   if (joint_component != info.joints.end())
   {

@@ -34,85 +34,81 @@
 namespace robotiq_3f_driver
 {
 
-// Indicates if the user has requested the gripper to be activated.
 enum class GripperActivationAction
 {
-  ClearGripperFaultStatus,
-  Activate,
+  RESET,
+  ACTIVE
 };
+// They are the same, but we want to be explicit about what we are doing
+using GripperActivationStatus = GripperActivationAction;
 
-// Indicates the gripper mode.
-enum class GripperMode
+enum class GraspingMode
 {
-  AutomaticMode,  // Automatic.
-  AdvancedMode,   // Advanced.
-  Unknown
+  BASIC,
+  PINCH,
+  WIDE,
+  SCISSOR
 };
 
-enum class GripperRegulateAction
+enum class GoTo
 {
-  StopVacuumGenerator,             // Stop the vacuum generator.
-  FollowRequestedVacuumParameters  // Follow the requested vacuum parameters in real time.
+  STOP,
+  GO_TO
 };
 
-enum class GripperReleaseAction
+enum class ActionStatus
 {
-  NormalRelease,         // Normal operation.
-  ReleaseWithoutTimeout  // Open the valves without any timeout.
+  STOPPED,
+  MOVING
 };
 
-// Indicates the status of the gripper activation sequence.
-enum class GripperActivationStatus
+enum class MotionStatus // gSTA
 {
-  GripperNotActivated,  // Gripper is not activated.
-  GripperOperational,   // Gripper is operational.
-  Unknown
+  IN_MOTION,
+  STOPPED_ONE_OR_TWO_URNEACHED,
+  STOPPED_THREE_UNREACHED,
+  STOPPED_REACHED
 };
 
-// Indicates the status of the object detection.
 enum class ObjectDetectionStatus
 {
-  ObjectDetectedAtMinPressure,  // Object detected. Minimum vacuum value reached.
-  ObjectDetectedAtMaxPressure,  // Object detected. Maximum vacuum value reached.
-  NoObjectDetected,             // Object loss, dropped or gripping timeout reached.
-  Unknown                       // Unknown object detection. Regulating towards requested vacuum/pressure.
+  MOVING,
+  OBJECT_DETECTED_OPENING,
+  OBJECT_DETECTED_CLOSING,
+  AT_REQUESTED_POSITION
+};
+
+enum class GripperStatus
+{
+  RESET,
+  ACTIVATION_IN_PROGRESS,
+  MODE_CHANGE_IN_PROGRESS,
+  ACTIVATED
 };
 
 enum class GripperFaultStatus
 {
-  NoFault,
-  ActionDelayed,
-  PorousMaterialDetected,
-  GrippingTimeout,
-  ActivationBitNotSet,
-  MaximumTemperatureExceeded,
-  NoCommunicationForAtLeastOneSecond,
-  UnderMinimumOperatingVoltage,
-  AutomaticReleaseInProgress,
-  InternalFault,
-  AutomaticReleaseCompleted,
-  Unknown
+  // priority faults
+  ACTION_DELAYED_REACTIVATION_NEEDED,
+  ACTION_DELAYED_MODE_CHANGE_NEEDED,
+  ACTIVATION_BIT_NOT_SET,
+  // minor faults
+  NOT_READY,
+  MODE_CHANGE_SCISSOR_MOTION_ERROR,
+  AUTO_RELEASE_IN_PROGRESS,
+  // major faults
+  ACTIVATION_FAULT,
+  MODE_CHANGE_FAULT,
+  AUTOMATIC_RELEASE_FAULT,
 };
 
-enum class ActuatorStatus
+struct FullGripperStatus
 {
-  Standby,
-  Gripping,
-  PassiveReleasing,
-  ActiveReleasing
-};
-
-struct GripperStatus
-{
-  GripperActivationAction gripper_activation_action;
-  GripperMode gripper_mode;
-  GripperRegulateAction gripper_regulate_action;
-  GripperActivationStatus gripper_activation_status;
-  GripperFaultStatus gripper_fault_status;
-  ActuatorStatus actuator_status;
-  ObjectDetectionStatus object_detection_status;
-  float max_vacuum_pressure;
-  float actual_vacuum_pressure;
+  GripperActivationStatus activation_status;  // an echo of the activation command
+  GraspingMode mode_status;
+  GoTo go_to_status;
+  GripperStatus gripper_status;
+  MotionStatus motion_status;
 };
 
 /**
@@ -123,35 +119,7 @@ struct GripperStatus
 class Driver
 {
 public:
-  Driver() = default;
-
   virtual void set_slave_address(uint8_t slave_address) = 0;
-
-  virtual void set_mode(GripperMode gripper_mode) = 0;
-
-  /**
-   * Set the gripper maximum vacuum pressure to hold an object relative to the
-   * atmospheric pressure.
-   * The vacuum pressure is measured in kPa below the atmospheric pressure
-   * (100KpA) and must fall between -100kPa (perfect vacuum) and 0kPa.
-   * @param vacuum_pressure The maximum grip vacuum pressure between
-   * -100kPa and 0kPa.
-   */
-  virtual void set_grip_max_vacuum_pressure(float vacuum_pressure) = 0;
-
-  /**
-   * Set the gripper minimum acceptable vacuum pressure to hold an object
-   * relative to the atmospheric pressure.
-   * The vacuum pressure is measured in kPa below the atmospheric pressure
-   * (100KpA) and must fall between -100kPa (perfect vacuum) and 0kPa.
-   * @param vacuum_pressure The minimum acceptable vacuum pressure between
-   * -100kPa and 0kPa.
-   */
-  virtual void set_grip_min_vacuum_pressure(float vacuum_pressure) = 0;
-
-  virtual void set_grip_timeout(std::chrono::milliseconds timeout) = 0;
-
-  virtual void set_release_timeout(std::chrono::milliseconds timeout) = 0;
 
   /** Connect to the gripper serial connection. */
   virtual bool connect() = 0;
@@ -159,12 +127,64 @@ public:
   /** Disconnect from the gripper serial connection. */
   virtual void disconnect() = 0;
 
+  /**
+   * @brief Activates the gripper.
+   * @throw serial::IOException on failure to successfully communicate with gripper port
+   */
   virtual void activate() = 0;
+
+  /**
+   * @brief Deactivates the gripper.
+   * @throw serial::IOException on failure to successfully communicate with gripper port
+   */
   virtual void deactivate() = 0;
 
-  virtual void grip() = 0;
-  virtual void release() = 0;
+  virtual FullGripperStatus get_full_status() = 0;
+  /**
+   * gACT: initialization status
+   */
+  virtual uint8_t get_activation_status() = 0;
+  // TODO: add register names
+  virtual uint8_t get_operation_mode_status() = 0;
+  virtual uint8_t get_action_status() = 0;
+  virtual uint8_t get_gripper_status() = 0;
+  virtual uint8_t get_motion_status() = 0;
+  virtual uint8_t get_fault_status() = 0;
+  virtual uint8_t get_finger_a_commanded_position() = 0;
+  virtual uint8_t get_finger_a_position() = 0;
+  virtual uint8_t get_finger_a_current() = 0;
+  virtual uint8_t get_finger_a_object_status() = 0;
+  virtual uint8_t get_finger_b_commanded_position() = 0;
+  virtual uint8_t get_finger_b_position() = 0;
+  virtual uint8_t get_finger_b_current() = 0;
+  virtual uint8_t get_finger_b_object_status() = 0;
+  virtual uint8_t get_finger_c_commanded_position() = 0;
+  virtual uint8_t get_finger_c_position() = 0;
+  virtual uint8_t get_finger_c_current() = 0;
+  virtual uint8_t get_finger_c_object_status() = 0;
+  virtual uint8_t get_scissor_commanded_position() = 0;
+  virtual uint8_t get_scissor_position() = 0;
+  virtual uint8_t get_scissor_current() = 0;
+  virtual uint8_t get_scissor_object_status() = 0;
 
-  virtual GripperStatus get_status() = 0;
+  virtual void set_activate(uint8_t activate) = 0;  // akin to "initialization"
+  virtual void set_grasping_mode(uint8_t grasping_mode) = 0;
+  virtual void set_go_to(uint8_t go_to) = 0;
+  virtual void set_auto_release(uint8_t auto_release) = 0;
+  virtual void set_individual_finger_control(uint8_t individual_finger_control) = 0;
+  virtual void set_individual_scissor_control(uint8_t individual_scissor_control) = 0;
+  virtual void set_finger_a_position(uint8_t pos) = 0;
+  virtual void set_finger_a_speed(uint8_t speed) = 0;
+  virtual void set_finger_a_force(uint8_t force) = 0;
+  virtual void set_finger_b_position(uint8_t pos) = 0;
+  virtual void set_finger_b_speed(uint8_t speed) = 0;
+  virtual void set_finger_b_force(uint8_t force) = 0;
+  virtual void set_finger_c_position(uint8_t pos) = 0;
+  virtual void set_finger_c_speed(uint8_t speed) = 0;
+  virtual void set_finger_c_force(uint8_t force) = 0;
+  virtual void set_scissor_position(uint8_t pos) = 0;
+  virtual void set_scissor_speed(uint8_t speed) = 0;
+  virtual void set_scissor_force(uint8_t force) = 0;
 };
+
 }  // namespace robotiq_3f_driver

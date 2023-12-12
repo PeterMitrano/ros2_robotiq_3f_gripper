@@ -45,10 +45,8 @@ namespace robotiq_3f_driver
 {
 const auto kLogger = rclcpp::get_logger("Robotiq3fGripperHardwareInterface");
 
-constexpr auto kGripperPrefixName = "gripper";
-
-constexpr auto kGripCommandInterfaceName = "grip_cmd";
-constexpr auto kGripStateInterfacename = "grip_cmd";
+constexpr auto kGripCommandInterfaceName = "cmd";
+constexpr auto kGripStateInterfacename = "state";
 
 constexpr auto kObjectDetectionStateInterfaceName = "object_detection_status";
 
@@ -141,32 +139,8 @@ std::vector<hardware_interface::StateInterface> Robotiq3fGripperHardwareInterfac
   RCLCPP_DEBUG(kLogger, "export_state_interfaces");
   std::vector<hardware_interface::StateInterface> state_interfaces;
   try
-  {
-    if (get_gpios_state_interface(kGripperPrefixName, kObjectDetectionStateInterfaceName, info_).has_value())
-    {
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          kGripperPrefixName, kObjectDetectionStateInterfaceName, &gripper_status_.object_detection_status));
-    }
-    else
-    {
-      RCLCPP_ERROR(kLogger, "State interface %s/%s not found.", kGripperPrefixName, kObjectDetectionStateInterfaceName);
-    }
-    if (get_gpios_state_interface(kGripperPrefixName, kGripStateInterfacename, info_).has_value())
-    {
-      state_interfaces.emplace_back(
-          hardware_interface::StateInterface(kGripperPrefixName, kGripStateInterfacename, &gripper_status_.grip_cmd));
-    }
-    else
-    {
-      RCLCPP_ERROR(kLogger, "State interface %s/%s not found.", kGripperPrefixName, hardware_interface::HW_IF_POSITION);
-    }
-
-    // This joint state is optional.
-    if (get_joints_state_interface(kGripperPrefixName, hardware_interface::HW_IF_POSITION, info_).has_value())
-    {
-      state_interfaces.emplace_back(hardware_interface::StateInterface(
-          kGripperPrefixName, hardware_interface::HW_IF_POSITION, &gripper_status_.grip_cmd));
-    }
+          "finger_a", hardware_interface::HW_IF_POSITION, &safe_state_.state.load().finger_a_position));
   }
   catch (const std::exception& ex)
   {
@@ -275,7 +249,7 @@ hardware_interface::return_type Robotiq3fGripperHardwareInterface::write([[maybe
   // thread.
   try
   {
-    safe_gripper_cmd_.grip_cmd.store(gripper_cmds_.grip_cmd);
+    safe_cmd_.grip_cmd.store(gripper_cmds_.grip_cmd);
   }
   catch (const std::exception& ex)
   {
@@ -294,13 +268,13 @@ void Robotiq3fGripperHardwareInterface::background_task()
     try
     {
       // Retrieve current status and update state interfaces
-      const auto status = driver_->get_status();
+      const auto status = driver_->get_full_status();
       safe_gripper_status_.object_detection_status.store(
           default_driver_utils::object_detection_to_double(status.object_detection_status));
 
       // If the gripper or release command is successful, the gripper_cmd state
       // interface value will follow the gripper_cmd command interface value.
-      const auto grip_cmd = safe_gripper_cmd_.grip_cmd.load();
+      const auto grip_cmd = safe_cmd_.grip_cmd.load();
       const auto grip_state = safe_gripper_status_.grip_cmd.load();
 
       if (is_false(grip_state) && is_true(grip_cmd))
@@ -313,6 +287,8 @@ void Robotiq3fGripperHardwareInterface::background_task()
         driver_->release();
         safe_gripper_status_.grip_cmd.store(grip_cmd);
       }
+
+      driver_->
     }
     catch (std::exception& e)
     {

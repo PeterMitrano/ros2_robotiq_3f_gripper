@@ -37,6 +37,8 @@
 namespace robotiq_3f_driver::default_driver_utils
 {
 
+//////////// Setter utils ////////////////////////////////////////////////////
+
 /**
  * Sets bits in a register based on a bitmask and a set of bits.
  * @param reg Initial register value.
@@ -56,41 +58,143 @@ void set_bits(uint8_t& reg, uint8_t bitmask, uint8_t bits)
 /// Gripper activation request.
 ///
 
-constexpr uint8_t gACT_mask = 0b00000001;
+constexpr uint8_t rACT_mask = 0b00000001;
 
-void set_gripper_activation_action(uint8_t& reg, const GripperActivationAction gripper_activation_action)
+void set_gripper_activation(uint8_t& reg, const GripperActivationAction gripper_activation_action)
 {
   switch (gripper_activation_action)
   {
-    case GripperActivationAction::ClearGripperFaultStatus:
-      set_bits(reg, gACT_mask, 0b00000000);
+    case GripperActivationAction::RESET:
+      set_bits(reg, rACT_mask, 0b00000000);
       break;
-    case GripperActivationAction::Activate:
-      set_bits(reg, gACT_mask, 0b00000001);
+    case GripperActivationAction::ACTIVE:
+      set_bits(reg, rACT_mask, 0b00000001);
       break;
     default:
       break;
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// Mode change request
+///
+
+constexpr uint8_t rMOD_mask = 0b00000110;
+
+void set_grasping_mode(uint8_t& reg, const GraspingMode grasping_mode)
+{
+  switch (grasping_mode)
+  {
+    case GraspingMode::BASIC:
+      set_bits(reg, rMOD_mask, 0b00000000);
+      break;
+    case GraspingMode::PINCH:
+      set_bits(reg, rMOD_mask, 0b00000010);
+      break;
+    case GraspingMode::WIDE:
+      set_bits(reg, rMOD_mask, 0b00000100);
+      break;
+    case GraspingMode::SCISSOR:
+      set_bits(reg, rMOD_mask, 0b00000110);
+      break;
+    default:
+      break;
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// GoTo request
+///
+
+constexpr uint8_t rGTO_mask = 0b00001000;
+
+void set_go_to(uint8_t& reg, const GoTo go_to)
+{
+  switch (go_to)
+  {
+    case GoTo::STOP:
+      set_bits(reg, rGTO_mask, 0b00000000);
+      break;
+    case GoTo::GO_TO:
+      set_bits(reg, rGTO_mask, 0b00001000);
+      break;
+    default:
+      break;
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Automatic release request
+///
+
+constexpr uint8_t rATR_mask = 0b00010000;
+
+void set_automatic_release(uint8_t& reg, const bool automatic_release)
+{
+  if (automatic_release)
+  {
+    set_bits(reg, rATR_mask, 0b00010000);
+  }
+  else
+  {
+    set_bits(reg, rATR_mask, 0b00000000);
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Individual control mode
+///
+
+constexpr uint8_t rICF_mask = 0b00000100;
+
+void set_individual_control_mode(uint8_t& reg, const bool individual_control_mode)
+{
+  if (individual_control_mode)
+  {
+    set_bits(reg, rICF_mask, 0b00000100);
+  }
+  else
+  {
+    set_bits(reg, rICF_mask, 0b00000000);
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Individual scissor control mode
+///
+
+constexpr uint8_t rICS_mask = 0b00001000;
+
+void set_individual_scissor_control_mode(uint8_t& reg, const bool individual_scissor_control_mode)
+{
+  if (individual_scissor_control_mode)
+  {
+    set_bits(reg, rICS_mask, 0b00001000);
+  }
+  else
+  {
+    set_bits(reg, rICS_mask, 0b00000000);
+  }
+}
+
+//////////// Getter utils ////////////////////////////////////////////////////
+
+constexpr uint8_t gACT_mask = 0b00000001;
+
 GripperActivationAction get_gripper_activation_action(const uint8_t& reg)
 {
-  // clang-format off
   static const std::unordered_map<uint8_t, GripperActivationAction> map{
-    { 0b00000000, GripperActivationAction::ClearGripperFaultStatus },
-    { 0b00000001, GripperActivationAction::Activate } };
-  // clang-format on
+    { 0b00000000, GripperActivationAction::RESET }, { 0b00000001, GripperActivationAction::ACTIVE }
+  };
   return map.at(reg & default_driver_utils::gACT_mask);
 }
 
 const std::string gripper_activation_action_to_string(const GripperActivationAction gripper_activation_action)
 {
-  // clang-format off
   static std::map<GripperActivationAction, std::string> map = {
-    { GripperActivationAction::ClearGripperFaultStatus, "ClearGripperFaultStatus" },
-    { GripperActivationAction::Activate, "Activate" },
-    };
-  // clang-format on
+    { GripperActivationAction::RESET, "ClearGripperFaultStatus" },
+    { GripperActivationAction::ACTIVE, "Activate" },
+  };
   return map.at(gripper_activation_action);
 }
 
@@ -100,42 +204,22 @@ const std::string gripper_activation_action_to_string(const GripperActivationAct
 
 constexpr uint8_t gMOD_mask = 0b00000110;
 
-void set_gripper_mode(uint8_t& reg, const GripperMode gripper_mode)
+GraspingMode get_grasping_mode(const uint8_t& reg)
 {
-  switch (gripper_mode)
-  {
-    case GripperMode::AutomaticMode:
-      set_bits(reg, gMOD_mask, 0b00000000);
-      break;
-    case GripperMode::AdvancedMode:
-      set_bits(reg, gMOD_mask, 0b00000010);
-      break;
-    default:
-      break;
-  }
-}
-
-GripperMode get_gripper_mode(const uint8_t& reg)
-{
-  // clang-format off
-  static const std::unordered_map<uint8_t, GripperMode> map{
-    { 0b00000000, GripperMode::AutomaticMode },
-    { 0b00000010, GripperMode::AdvancedMode },
-    { 0b00000100, GripperMode::Unknown },
-    { 0b00000110, GripperMode::Unknown } };
-  // clang-format on
+  static const std::unordered_map<uint8_t, GraspingMode> map{ { 0b00000000, GraspingMode::BASIC },
+                                                              { 0b00000010, GraspingMode::PINCH },
+                                                              { 0b00000100, GraspingMode::WIDE },
+                                                              { 0b00000110, GraspingMode::SCISSOR } };
   return map.at(reg & default_driver_utils::gMOD_mask);
 }
 
-const std::string gripper_mode_to_string(const GripperMode gripper_mode)
+const std::string grasping_mode_to_string(const GraspingMode grasping_mode)
 {
-  // clang-format off
-  static std::map<GripperMode, std::string> map = {
-    { GripperMode::AutomaticMode, "AutomaticMode" },
-    { GripperMode::AdvancedMode, "AdvancedMode" },
-    { GripperMode::Unknown, "Unknown" } };
-  // clang-format on
-  return map.at(gripper_mode);
+  static std::map<GraspingMode, std::string> map = { { GraspingMode::BASIC, "BASIC" },
+                                                     { GraspingMode::PINCH, "PINCH" },
+                                                     { GraspingMode::WIDE, "WIDE" },
+                                                     { GraspingMode::SCISSOR, "SCISSOR" } };
+  return map.at(grasping_mode);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -144,258 +228,163 @@ const std::string gripper_mode_to_string(const GripperMode gripper_mode)
 
 constexpr uint8_t gGTO_mask = 0b00001000;
 
-void set_gripper_regulate_action(uint8_t& reg, const GripperRegulateAction regulate_action)
+GoTo get_go_to_status(const uint8_t& reg)
 {
-  switch (regulate_action)
-  {
-    case GripperRegulateAction::StopVacuumGenerator:
-      set_bits(reg, gGTO_mask, 0b00000000);
-      break;
-    case GripperRegulateAction::FollowRequestedVacuumParameters:
-      set_bits(reg, gGTO_mask, 0b00001000);
-      break;
-    default:
-      break;
-  }
-}
-
-GripperRegulateAction get_gripper_regulate_action(const uint8_t& reg)
-{
-  // clang-format off
-  static const std::unordered_map<uint8_t, GripperRegulateAction> map{
-    { 0b00000000, GripperRegulateAction::StopVacuumGenerator },
-    { 0b00001000, GripperRegulateAction::FollowRequestedVacuumParameters } };
-  // clang-format on
+  static const std::unordered_map<uint8_t, GoTo> map{ { 0b00000000, GoTo::STOP }, { 0b00001000, GoTo::GO_TO } };
   return map.at(reg & default_driver_utils::gGTO_mask);
 }
 
-const std::string gripper_regulate_action_to_string(const GripperRegulateAction gripper_regulate_action)
+const std::string go_to_to_string(const GoTo go_to)
 {
-  // clang-format off
-  static std::map<GripperRegulateAction, std::string> map = {
-    { GripperRegulateAction::StopVacuumGenerator, "StopVacuumGenerator" },
-    { GripperRegulateAction::FollowRequestedVacuumParameters, "FollowRequestedVacuumParameters" } };
-  // clang-format on
-  return map.at(gripper_regulate_action);
-}
-
-GripperRegulateAction double_to_regulate_action(double regulate)
-{
-  if (regulate >= 0.5)
-  {
-    return GripperRegulateAction::FollowRequestedVacuumParameters;
-  }
-  else
-  {
-    return GripperRegulateAction::StopVacuumGenerator;
-  }
-}
-
-double regulate_action_to_double(GripperRegulateAction regulate)
-{
-  if (regulate == GripperRegulateAction::FollowRequestedVacuumParameters)
-  {
-    return 1.0;
-  }
-  else
-  {
-    return 0.0;
-  }
+  static std::map<GoTo, std::string> map = { { GoTo::STOP, "STOP" }, { GoTo::GO_TO, "GO_TO" } };
+  return map.at(go_to);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Automatic release action.
+/// gripper status
 ///
 
-constexpr uint8_t gATR_mask = 0b00010000;
+constexpr uint8_t gIMC_mask = 0b00110000;
 
-/** Associate a configuration of bits to the GripperAutomaticReleaseAction enum. */
-const std::unordered_map<uint8_t, GripperReleaseAction>& gATR_lookup()
+GripperStatus get_gripper_status(const uint8_t& reg)
 {
-  // clang-format off
-  static const std::unordered_map<uint8_t, GripperReleaseAction> map{
-    { 0b00000000, GripperReleaseAction::NormalRelease },
-    { 0b00010000, GripperReleaseAction::ReleaseWithoutTimeout } };
-  // clang-format on
-  return map;
-}
-
-void set_gripper_automatic_release_action(uint8_t& reg, const GripperReleaseAction gripper_release_action)
-{
-  switch (gripper_release_action)
-  {
-    case GripperReleaseAction::NormalRelease:
-      set_bits(reg, gATR_mask, 0b00000000);
-      break;
-    case GripperReleaseAction::ReleaseWithoutTimeout:
-      set_bits(reg, gATR_mask, 0b00010000);
-      break;
-    default:
-      break;
-  }
-}
-
-const std::string gripper_release_action_to_string(const GripperReleaseAction gripper_release_action)
-{
-  // clang-format off
-  static std::map<GripperReleaseAction, std::string> map = {
-    { GripperReleaseAction::NormalRelease, "NormalRelease" },
-    { GripperReleaseAction::ReleaseWithoutTimeout, "ReleaseWithoutTimeout" } };
-  // clang-format on
-  return map.at(gripper_release_action);
+  static const std::unordered_map<uint8_t, GripperStatus> map{ { 0b00000000, GripperStatus::RESET },
+                                                               { 0b00010000, GripperStatus::ACTIVATION_IN_PROGRESS },
+                                                               { 0b00100000, GripperStatus::MODE_CHANGE_IN_PROGRESS },
+                                                               { 0b00110000, GripperStatus::ACTIVATED } };
+  return map.at(reg & default_driver_utils::gIMC_mask);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Activation status.
+/// motion status.
 ///
 
-constexpr uint8_t gSTA_mask = 0b00110000;
+constexpr uint8_t gSTA_mask = 0b11000000;
 
-GripperActivationStatus get_gripper_activation_status(const uint8_t& reg)
+MotionStatus get_motion_status(const uint8_t& reg)
 {
-  // clang-format off
-  static const std::unordered_map<uint8_t, GripperActivationStatus> map{
-    { 0b00000000, GripperActivationStatus::GripperNotActivated },
-    { 0b00010000, GripperActivationStatus::Unknown },
-    { 0b00110000, GripperActivationStatus::GripperOperational },
-    { 0b00100000, GripperActivationStatus::Unknown } };
-  // clang-format on
+  static const std::unordered_map<uint8_t, MotionStatus> map{ { 0b00000000, MotionStatus::IN_MOTION },
+                                                              { 0b01000000, MotionStatus::STOPPED_ONE_OR_TWO_URNEACHED },
+                                                              { 0b10000000, MotionStatus::STOPPED_THREE_UNREACHED },
+                                                              { 0b11000000, MotionStatus::STOPPED_REACHED } };
   return map.at(reg & default_driver_utils::gSTA_mask);
 }
 
-const std::string gripper_activation_status_to_string(const GripperActivationStatus gripper_activation_status)
+const std::string motion_status_to_string(const MotionStatus motionStatus)
 {
-  // clang-format off
-  static std::map<GripperActivationStatus, std::string> map = {
-    { GripperActivationStatus::GripperNotActivated, "GripperNotActivated" },
-    { GripperActivationStatus::GripperOperational, "GripperOperational" },
-    { GripperActivationStatus::Unknown, "Unknown" } };
-  // clang-format on
-  return map.at(gripper_activation_status);
+  static std::map<MotionStatus, std::string> map = {
+    { MotionStatus::IN_MOTION, "IN_MOTION" },
+    { MotionStatus::STOPPED_ONE_OR_TWO_URNEACHED, "STOPPED_ONE_OR_TWO_URNEACHED" },
+    { MotionStatus::STOPPED_THREE_UNREACHED, "STOPPED_THREE_UNREACHED" },
+    { MotionStatus::STOPPED_REACHED, "STOPPED_REACHED" }
+  };
+  return map.at(motionStatus);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Object status
+/// Finger A Object status
 ///
 
-constexpr uint8_t gOBJ_mask = 0b11000000;
+constexpr uint8_t gDTA_mask = 0b00000011;
 
-ObjectDetectionStatus get_object_detection_status(const uint8_t& reg)
+ObjectDetectionStatus get_finger_a_object_status(const uint8_t& reg)
 {
-  // clang-format off
   static const std::unordered_map<uint8_t, ObjectDetectionStatus> map{
-    { 0b00000000, ObjectDetectionStatus::Unknown },
-    { 0b01000000, ObjectDetectionStatus::ObjectDetectedAtMinPressure },
-    { 0b10000000, ObjectDetectionStatus::ObjectDetectedAtMaxPressure },
-    { 0b11000000, ObjectDetectionStatus::NoObjectDetected } };
-  // clang-format on
-  return map.at(reg & default_driver_utils::gOBJ_mask);
-}
-
-const std::string object_detection_to_string(const ObjectDetectionStatus object_detection)
-{
-  // clang-format off
-  static std::map<ObjectDetectionStatus, std::string> map = {
-    { ObjectDetectionStatus::Unknown, "Unknown" },
-    { ObjectDetectionStatus::ObjectDetectedAtMinPressure, "ObjectDetectedAtMinPressure" },
-    { ObjectDetectionStatus::ObjectDetectedAtMaxPressure, "ObjectDetectedAtMaxPressure" },
-    { ObjectDetectionStatus::NoObjectDetected, "NoObjectDetected" } };
-  // clang-format on
-  return map.at(object_detection);
-}
-
-double object_detection_to_double(const ObjectDetectionStatus object_detection)
-{
-  // clang-format off
-  static std::map<ObjectDetectionStatus, double> map = {
-    { ObjectDetectionStatus::Unknown, 0.0 },
-    { ObjectDetectionStatus::ObjectDetectedAtMinPressure, 1.0 },
-    { ObjectDetectionStatus::ObjectDetectedAtMaxPressure, 2.0 },
-    { ObjectDetectionStatus::NoObjectDetected, 3.0 } };
-  // clang-format on
-  return map.at(object_detection);
+    { 0b00000000, ObjectDetectionStatus::MOVING },
+    { 0b00000001, ObjectDetectionStatus::OBJECT_DETECTED_OPENING },
+    { 0b00000010, ObjectDetectionStatus::OBJECT_DETECTED_CLOSING },
+    { 0b00000011, ObjectDetectionStatus::AT_REQUESTED_POSITION }
+  };
+  return map.at(reg & default_driver_utils::gDTA_mask);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Gripper fault status
+/// Finger B Object status
+///
+
+constexpr uint8_t gDTB_mask = 0b00001100;
+
+ObjectDetectionStatus get_finger_b_object_status(const uint8_t& reg)
+{
+  static const std::unordered_map<uint8_t, ObjectDetectionStatus> map{
+    { 0b00000000, ObjectDetectionStatus::MOVING },
+    { 0b00000100, ObjectDetectionStatus::OBJECT_DETECTED_OPENING },
+    { 0b00001000, ObjectDetectionStatus::OBJECT_DETECTED_CLOSING },
+    { 0b00001100, ObjectDetectionStatus::AT_REQUESTED_POSITION }
+  };
+  return map.at(reg & default_driver_utils::gDTB_mask);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Finger C Object status
+///
+
+constexpr uint8_t gDTC_mask = 0b00110000;
+
+ObjectDetectionStatus get_finger_c_object_status(const uint8_t& reg)
+{
+  static const std::unordered_map<uint8_t, ObjectDetectionStatus> map{
+    { 0b00000000, ObjectDetectionStatus::MOVING },
+    { 0b00010000, ObjectDetectionStatus::OBJECT_DETECTED_OPENING },
+    { 0b00100000, ObjectDetectionStatus::OBJECT_DETECTED_CLOSING },
+    { 0b00110000, ObjectDetectionStatus::AT_REQUESTED_POSITION }
+  };
+  return map.at(reg & default_driver_utils::gDTC_mask);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Scissor Object status
+///
+
+constexpr uint8_t gDTS_mask = 0b11000000;
+
+ObjectDetectionStatus get_scissor_object_status(const uint8_t& reg)
+{
+  static const std::unordered_map<uint8_t, ObjectDetectionStatus> map{
+    { 0b00000000, ObjectDetectionStatus::MOVING },
+    { 0b01000000, ObjectDetectionStatus::OBJECT_DETECTED_OPENING },
+    { 0b10000000, ObjectDetectionStatus::OBJECT_DETECTED_CLOSING },
+    { 0b11000000, ObjectDetectionStatus::AT_REQUESTED_POSITION }
+  };
+  return map.at(reg & default_driver_utils::gDTS_mask);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Fault status
 ///
 
 constexpr uint8_t gFLT_mask = 0b00001111;
 
 GripperFaultStatus get_gripper_fault_status(const uint8_t& reg)
 {
-  // clang-format off
   static const std::unordered_map<uint8_t, GripperFaultStatus> map{
-    { 0b00000000, GripperFaultStatus::NoFault },                             // 0x0
-    { 0b00000001, GripperFaultStatus::Unknown },                             // 0x1
-    { 0b00000010, GripperFaultStatus::Unknown },                             // 0x2
-    { 0b00000011, GripperFaultStatus::PorousMaterialDetected },              // 0x3
-    { 0b00000100, GripperFaultStatus::Unknown },                             // 0x4
-    { 0b00000101, GripperFaultStatus::ActionDelayed },                       // 0x5
-    { 0b00000110, GripperFaultStatus::GrippingTimeout },                     // 0x6
-    { 0b00000111, GripperFaultStatus::ActivationBitNotSet },                 // 0x7
-    { 0b00001000, GripperFaultStatus::MaximumTemperatureExceeded },          // 0x8
-    { 0b00001001, GripperFaultStatus::NoCommunicationForAtLeastOneSecond },  // 0x9
-    { 0b00001010, GripperFaultStatus::UnderMinimumOperatingVoltage },        // 0xA
-    { 0b00001011, GripperFaultStatus::AutomaticReleaseInProgress },          // 0xB
-    { 0b00001100, GripperFaultStatus::InternalFault },                       // 0xC
-    { 0b00001101, GripperFaultStatus::Unknown },                             // 0xD
-    { 0b00001110, GripperFaultStatus::Unknown },                             // 0xE
-    { 0b00001111, GripperFaultStatus::AutomaticReleaseCompleted }            // 0xF
+    { 0b00000000, GripperFaultStatus::ACTION_DELAYED_MODE_CHANGE_NEEDED },
+    { 0b00000001, GripperFaultStatus::ACTION_DELAYED_REACTIVATION_NEEDED },
+    { 0b00000010, GripperFaultStatus::ACTIVATION_BIT_NOT_SET },
+    { 0b00000011, GripperFaultStatus::NOT_READY },
+    { 0b00000100, GripperFaultStatus::MODE_CHANGE_SCISSOR_MOTION_ERROR },
+    { 0b00000101, GripperFaultStatus::AUTO_RELEASE_IN_PROGRESS },
+    { 0b00000110, GripperFaultStatus::ACTIVATION_FAULT },
+    { 0b00000111, GripperFaultStatus::MODE_CHANGE_FAULT },
+    { 0b00001000, GripperFaultStatus::AUTOMATIC_RELEASE_FAULT },
   };
-  // clang-format on
   return map.at(reg & default_driver_utils::gFLT_mask);
 }
 
 const std::string fault_status_to_string(const GripperFaultStatus fault_status)
 {
-  // clang-format off
   static std::map<GripperFaultStatus, std::string> map = {
-    { GripperFaultStatus::NoFault, "NoFault" },
-    { GripperFaultStatus::ActionDelayed, "ActionDelayed" },
-    { GripperFaultStatus::PorousMaterialDetected, "PorousMaterialDetected" },
-    { GripperFaultStatus::GrippingTimeout, "GrippingTimeout" },
-    { GripperFaultStatus::ActivationBitNotSet, "ActivationBitNotSet" },
-    { GripperFaultStatus::MaximumTemperatureExceeded, "MaximumTemperatureExceeded" },
-    { GripperFaultStatus::NoCommunicationForAtLeastOneSecond, "NoCommunicationForAtLeastOneSecond" },
-    { GripperFaultStatus::UnderMinimumOperatingVoltage, "UnderMinimumOperatingVoltage" },
-    { GripperFaultStatus::AutomaticReleaseInProgress, "AutomaticReleaseInProgress" },
-    { GripperFaultStatus::InternalFault, "InternalFault" },
-    { GripperFaultStatus::AutomaticReleaseCompleted, "AutomaticReleaseCompleted" },
-    { GripperFaultStatus::Unknown, "Unknown" },
-    };
-  // clang-format on
+    { GripperFaultStatus::ACTION_DELAYED_REACTIVATION_NEEDED, "ACTION_DELAYED_REACTIVATION_NEEDED" },
+    { GripperFaultStatus::ACTION_DELAYED_MODE_CHANGE_NEEDED, "ACTION_DELAYED_MODE_CHANGE_NEEDED" },
+    { GripperFaultStatus::ACTIVATION_BIT_NOT_SET, "ACTIVATION_BIT_NOT_SET" },
+    { GripperFaultStatus::NOT_READY, "NOT_READY" },
+    { GripperFaultStatus::MODE_CHANGE_SCISSOR_MOTION_ERROR, "MODE_CHANGE_SCISSOR_MOTION_ERROR" },
+    { GripperFaultStatus::AUTO_RELEASE_IN_PROGRESS, "AUTO_RELEASE_IN_PROGRESS" },
+    { GripperFaultStatus::ACTIVATION_FAULT, "ACTIVATION_FAULT" },
+    { GripperFaultStatus::MODE_CHANGE_FAULT, "MODE_CHANGE_FAULT" },
+    { GripperFaultStatus::AUTOMATIC_RELEASE_FAULT, "AUTOMATIC_RELEASE_FAULT" },
+  };
   return map.at(fault_status);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// Actuator status
-///
-
-constexpr uint8_t gVAS_mask = 0b00000011;
-
-ActuatorStatus get_actuator_status(const uint8_t& reg)
-{
-  // clang-format off
-  static const std::unordered_map<uint8_t, ActuatorStatus> map{
-    { 0b00, ActuatorStatus::Standby },
-    { 0b01, ActuatorStatus::Gripping },
-    { 0b10, ActuatorStatus::PassiveReleasing },
-    { 0b11, ActuatorStatus::ActiveReleasing } };
-  // clang-format on
-  return map.at(reg & default_driver_utils::gVAS_mask);
-}
-
-const std::string actuator_status_to_string(const ActuatorStatus actuator_status)
-{
-  // clang-format off
-  static std::map<ActuatorStatus, std::string> map = {
-    { ActuatorStatus::Standby, "Standby" },
-    { ActuatorStatus::Gripping, "Gripping" },
-    { ActuatorStatus::PassiveReleasing, "PassiveReleasing" },
-    { ActuatorStatus::ActiveReleasing, "ActiveReleasing" } };
-  // clang-format on
-  return map.at(actuator_status);
 }
 
 }  // namespace robotiq_3f_driver::default_driver_utils

@@ -54,24 +54,11 @@ public:
   bool connect() override;
   void disconnect() override;
 
-  void set_slave_address(uint8_t slave_address) override;
-  void set_mode(GripperMode gripper_mode) override;
-  void set_grip_max_vacuum_pressure(float vacuum_pressure) override;
-  void set_grip_min_vacuum_pressure(float vacuum_pressure) override;
-  void set_grip_timeout(std::chrono::milliseconds grip_timeout) override;
-  void set_release_timeout(std::chrono::milliseconds release_timeout) override;
-
-  GripperStatus get_status() override;
-
   /** Activate the gripper with the specified operation mode and parameters. */
   void activate() override;
 
   /** Deactivate the gripper. */
   void deactivate() override;
-
-  void grip() override;
-
-  void release() override;
 
 private:
   /**
@@ -85,13 +72,7 @@ private:
   std::vector<uint8_t> send(const std::vector<uint8_t>& request, size_t response_size) const;
 
   std::unique_ptr<Serial> serial_ = nullptr;
-  uint8_t slave_address_ = 0x00;
-  GripperMode gripper_mode_ = GripperMode::AutomaticMode;
-
-  float grip_max_vacuum_pressure_ = 0.0;
-  float grip_min_vacuum_pressure_ = 0.0;
-
-  std::chrono::milliseconds grip_timeout_ = std::chrono::milliseconds(0);
-  std::chrono::milliseconds release_timeout_ = std::chrono::milliseconds(0);
+  uint8_t slave_address_ = 0x09;
+  GraspingMode grasping_mode_ = GraspingMode::BASIC;
 };
 }  // namespace robotiq_3f_driver

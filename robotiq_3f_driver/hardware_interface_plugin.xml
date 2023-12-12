@@ -1,0 +1,7 @@
+<library path="robotiq_3f_driver">
+    <class name="robotiq_3f_driver/Robotiq3fGripperHardwareInterface" type="robotiq_3f_driver::Robotiq3fGripperHardwareInterface" base_class_type="hardware_interface::SystemInterface">
+        <description>
+            ROS2 hardware interface for the Robotiq 3f gripper.
+        </description>
+    </class>
+</library>

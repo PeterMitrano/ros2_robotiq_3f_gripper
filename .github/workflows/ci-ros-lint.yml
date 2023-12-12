@@ -17,8 +17,8 @@ jobs:
         with:
           distribution: humble
           linter: ${{ matrix.linter }}
-          package-name: epick_driver
-            epick_controllers
+          package-name: robotiq_3f_driver
+            robotiq_3f_controllers
             epick_description
             epick_hardware_tests
 
@@ -37,7 +37,7 @@ jobs:
           distribution: humble
           linter: cpplint
           arguments: "--linelength=121 --filter=-whitespace/newline"
-          package-name: epick_driver
-            epick_controllers
+          package-name: robotiq_3f_driver
+            robotiq_3f_controllers
             epick_description
             epick_hardware_tests

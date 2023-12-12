@@ -1,0 +1,11 @@
+# Configuration file required by the Controller Manager to load the specified controls.
+# See https://github.com/ros-controls/ros2_controllers/blob/master/joint_trajectory_controller/src/joint_trajectory_controller_parameters.yaml
+
+controller_manager:
+  ros__parameters:
+    update_rate: 30 # Hz
+
+    epick_gripper_action_controller:
+      type: robotiq_3f_controllers/EpickGripperActionController
+    epick_status_publisher_controller:
+      type: robotiq_3f_controllers/EpickStatusPublisherController

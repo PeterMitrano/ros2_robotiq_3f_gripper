@@ -54,6 +54,16 @@ void set_bits(uint8_t& reg, uint8_t bitmask, uint8_t bits)
   reg |= (bits & bitmask);
 }
 
+double uint8_to_double(const uint8_t& value)
+{
+  return static_cast<double>(value) / 255.0;
+}
+
+uint8_t double_to_uint8(const double& value)
+{
+  return static_cast<uint8_t>(value * 255.0);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Gripper activation request.
 ///

@@ -264,8 +264,8 @@ void Robotiq3fGripperHardwareInterface::background_task()
   {
     try
     {
-      // Retrieve current status and update state interfaces, and copy the status into the status_ struct.
-      // make sure to lock the mutex while we're reading and writing to the status_ struct.
+      // Retrieve current status and copy the status into the status_ struct, which is bound to the state interface.
+      // make sure to lock the mutex while we're writing to the status_ struct.
       {
         std::lock_guard<std::mutex> lock(state_mutex_);
         status_ = driver_->get_full_status();

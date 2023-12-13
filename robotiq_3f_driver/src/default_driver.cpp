@@ -47,22 +47,22 @@
 // | Idx | Address | Function            | Address | Function            |
 // +-----+---------+---------------------+---------+---------------------+
 // |   0 | 0x03E8  | Action Request      | 0x07D0  | Gripper Status      |
-// |   1 | 0x03E9  | Gripper Options     | 0x07D1  | Object Detection    |
-// |   2 | 0x03EA  | Empty               | 0x07D2  | Fault status        |
-// |   3 | 0x03EB  | Finger A Position   | 0x07D3  | Finger A Req Echo   |
-// |   4 | 0x03EC  | Finger A Speed      | 0x07D4  | Finger A Position   |
-// |   5 | 0x03ED  | Finger A Force      | 0x07D5  | Finger A Current    |
-// |   6 | 0x03EE  | Finger B Position   | 0x07D6  | Finger B Req Echo   |
-// |   7 | 0x03EF  | Finger B Speed      | 0x07D7  | Finger B Position   |
-// |   8 | 0x03F0  | Finger B Force      | 0x07D8  | Finger B Current    |
-// |   9 | 0x03F1  | Finger C Position   | 0x07D9  | Finger C Req Echo   |
-// |  10 | 0x03F2  | Finger C Speed      | 0x07DA  | Finger C Position   |
-// |  11 | 0x03F3  | Finger C Force      | 0x07DB  | Finger C Current    |
-// |  12 | 0x03F4  | Scissor Position    | 0x07DC  | Scissor Req Echo    |
-// |  13 | 0x03F5  | Scissor Speed       | 0x07DD  | Scissor Position    |
-// |  14 | 0x03F6  | Scissor Force       | 0x07DE  | Scissor Current     |
-// |  15 | 0x03F7  | Reserved            | 0x07DF  | Reserved            |
-// +-----+---------+---------------------+---------+---------------------+
+// |   1 |         | Gripper Options     |         | Object Detection    |
+// |   2 | 0x03E9  | Empty               | 0x07D1  | Fault status        |
+// |   3 |         | Finger A Position   |         | Finger A Req Echo   |
+// |   4 | 0x03EA  | Finger A Speed      | 0x07D2  | Finger A Position   |
+// |   5 |         | Finger A Force      |         | Finger A Current    |
+// |   6 | 0x03EB  | Finger B Position   | 0x07D3  | Finger B Req Echo   |
+// |   7 |         | Finger B Speed      |         | Finger B Position   |
+// |   8 | 0x03EC  | Finger B Force      | 0x07D4  | Finger B Current    |
+// |   9 |         | Finger C Position   |         | Finger C Req Echo   |
+// |  10 | 0x03ED  | Finger C Speed      | 0x07D5  | Finger C Position   |
+// |  11 |         | Finger C Force      |         | Finger C Current    |
+// |  12 | 0x03EE  | Scissor Position    | 0x07D6  | Scissor Req Echo    |
+// |  13 |         | Scissor Speed       |         | Scissor Position    |
+// |  14 | 0x03EF  | Scissor Force       | 0x07D7  | Scissor Current     |
+// |  15 |         | Reserved            |         | Reserved            |
+//       +---------+---------------------+---------+---------------------+
 
 namespace robotiq_3f_driver
 {
@@ -80,7 +80,7 @@ constexpr uint16_t kFingerAReqEchoRegister = 0x07D3;
 
 constexpr size_t kActivateResponseSize = 8;
 constexpr size_t kDectivateResponseSize = 8;
-constexpr size_t kGetFullStatusRegisterCount = 16;
+constexpr size_t kNumModBusRegisters = 8;
 constexpr size_t kResponseSizeHeaderSize = 5;
 
 DefaultDriver::DefaultDriver(std::unique_ptr<Serial> serial) : serial_{ std::move(serial) }
@@ -150,10 +150,13 @@ void DefaultDriver::activate()
     data_utils::get_lsb(kActionRequestRegisterAddress),
     0x00,                      // Number of registers to write MSB.
     0x03,                      // Number of registers to write LSB.
-    0x06,                      // Number of bytes to write.
+    2 * 0x03,                  // Number of bytes to write. 2 robotiq registers per modbus register! (See 4.7.1)
     action_request_register,   // Action register.
     gripper_options_register,  // Gripper options
-    0x00,                      // Reserved.
+    0x00, // Not totally sure we need to write all these zeros, but I guess it can't hurt?
+    0x00,
+    0x00,
+    0x00,
   };
   auto crc = crc_utils::compute_crc(request);
   request.push_back(data_utils::get_msb(crc));
@@ -186,15 +189,11 @@ void DefaultDriver::deactivate()
     static_cast<uint8_t>(default_driver_utils::FunctionCode::PresetMultipleRegisters),
     data_utils::get_msb(kActionRequestRegisterAddress),
     data_utils::get_lsb(kActionRequestRegisterAddress),
-    0x00,  // Number of registers to write MSB.
-    0x03,  // Number of registers to write LSB.
-    0x06,  // Number of bytes to write.
-    0x00,  // Action register.
-    0x00,  // Reserved.
-    0x00,  // Reserved.
-    0x00,  // Max absolute pressure.
-    0x00,  // Gripper Timeout.
-    0x00,  // Min absolute pressure
+    0x00,      // Number of registers to write MSB.
+    0x01,      // Number of registers to write LSB.
+    2 * 0x01,  // Number of bytes to write.
+    0x00,      // Action register.
+    0x00,
   };
   auto crc = crc_utils::compute_crc(request);
   request.push_back(data_utils::get_msb(crc));
@@ -214,14 +213,14 @@ FullGripperStatus DefaultDriver::get_full_status()
     static_cast<uint8_t>(default_driver_utils::FunctionCode::ReadInputRegisters),
     data_utils::get_msb(kGripperStatusRegister),
     data_utils::get_lsb(kGripperStatusRegister),
-    data_utils::get_msb(kGetFullStatusRegisterCount),
-    data_utils::get_lsb(kGetFullStatusRegisterCount),
+    data_utils::get_msb(kNumModBusRegisters),
+    data_utils::get_lsb(kNumModBusRegisters),
   };
   auto crc = crc_utils::compute_crc(request);
   request.push_back(data_utils::get_msb(crc));
   request.push_back(data_utils::get_lsb(crc));
 
-  auto response = send(request, kResponseSizeHeaderSize + kGetFullStatusRegisterCount);
+  auto response = send(request, kResponseSizeHeaderSize + 2 * kNumModBusRegisters);
   if (response.empty())
   {
     throw DriverException{ "Failed to read the status." };
@@ -242,25 +241,71 @@ FullGripperStatus DefaultDriver::get_full_status()
   status.finger_c_object_detection_status = default_driver_utils::get_finger_c_object_status(response[4]);
   status.scissor_object_detection_status = default_driver_utils::get_scissor_object_status(response[4]);
   status.fault_status = default_driver_utils::get_gripper_fault_status(response[5]);
-  status.finger_a_position_cmd_echo = response[6];
-  status.finger_a_position = response[7];
-  status.finger_a_current = response[8];
-  status.finger_b_position_cmd_echo = response[9];
-  status.finger_b_position = response[10];
-  status.finger_b_current = response[11];
-  status.finger_c_position_cmd_echo = response[12];
-  status.finger_c_position = response[13];
-  status.finger_c_current = response[14];
-  status.scissor_position_cmd_echo = response[15];
-  status.scissor_position = response[16];
-  status.scissor_current = response[17];
+  status.finger_a_position_cmd_echo = default_driver_utils::uint8_to_double(response[6]);
+  status.finger_a_position = default_driver_utils::uint8_to_double(response[7]);
+  status.finger_a_current = default_driver_utils::uint8_to_double(response[8]);
+  status.finger_b_position_cmd_echo = default_driver_utils::uint8_to_double(response[9]);
+  status.finger_b_position = default_driver_utils::uint8_to_double(response[10]);
+  status.finger_b_current = default_driver_utils::uint8_to_double(response[11]);
+  status.finger_c_position_cmd_echo = default_driver_utils::uint8_to_double(response[12]);
+  status.finger_c_position = default_driver_utils::uint8_to_double(response[13]);
+  status.finger_c_current = default_driver_utils::uint8_to_double(response[14]);
+  status.scissor_position_cmd_echo = default_driver_utils::uint8_to_double(response[15]);
+  status.scissor_position = default_driver_utils::uint8_to_double(response[16]);
+  status.scissor_current = default_driver_utils::uint8_to_double(response[17]);
 
   return status;
 }
 
-void write(IndependantControlCommand const &cmd) {
+void DefaultDriver::write(IndependantControlCommand const& cmd)
+{
   // set all the position, speed, and force registers, as well as the GO_TO bits
   // the ACT bit must also still be set
+
+  uint8_t action_request_register = 0b00000000;
+  default_driver_utils::set_gripper_activation(action_request_register, GripperActivationAction::ACTIVE);
+  // Ensure no accidental motion, since we don't know what values the command registers might have
+  default_driver_utils::set_go_to(action_request_register, GoTo::STOP);
+
+  uint8_t gripper_options_register = 0b00000000;
+  default_driver_utils::set_individual_control_mode(gripper_options_register, true);
+  default_driver_utils::set_individual_scissor_control_mode(gripper_options_register, true);
+
+  std::vector<uint8_t> request = {
+    slave_address_,
+    static_cast<uint8_t>(default_driver_utils::FunctionCode::PresetMultipleRegisters),
+    data_utils::get_msb(kActionRequestRegisterAddress),
+    data_utils::get_lsb(kActionRequestRegisterAddress),
+    data_utils::get_msb(kNumModBusRegisters),
+    data_utils::get_lsb(kNumModBusRegisters),
+    2 * kNumModBusRegisters,  // Number of bytes to write.
+    action_request_register,
+    gripper_options_register,
+    default_driver_utils::double_to_uint8(cmd.finger_a_position),
+    default_driver_utils::double_to_uint8(cmd.finger_a_velocity),
+    default_driver_utils::double_to_uint8(cmd.finger_a_force),
+    default_driver_utils::double_to_uint8(cmd.finger_b_position),
+    default_driver_utils::double_to_uint8(cmd.finger_b_velocity),
+    default_driver_utils::double_to_uint8(cmd.finger_b_force),
+    default_driver_utils::double_to_uint8(cmd.finger_c_position),
+    default_driver_utils::double_to_uint8(cmd.finger_c_velocity),
+    default_driver_utils::double_to_uint8(cmd.finger_c_force),
+    default_driver_utils::double_to_uint8(cmd.scissor_position),
+    default_driver_utils::double_to_uint8(cmd.scissor_velocity),
+    default_driver_utils::double_to_uint8(cmd.scissor_force),
+    0x00,  // Reserved.
+  };
+  auto crc = crc_utils::compute_crc(request);
+  request.push_back(data_utils::get_msb(crc));
+  request.push_back(data_utils::get_lsb(crc));
+
+  auto response = send(request, kResponseSizeHeaderSize + 2 * kNumModBusRegisters);
+  if (response.empty())
+  {
+    throw DriverException{ "Failed send commands to gripper." };
+  }
+
+  // NOTE: Do I need to check the response?
 }
 
 }  // namespace robotiq_3f_driver

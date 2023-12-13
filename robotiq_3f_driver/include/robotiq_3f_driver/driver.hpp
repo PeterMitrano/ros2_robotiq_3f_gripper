@@ -110,18 +110,20 @@ struct FullGripperStatus
   GripperStatus gripper_status;
   MotionStatus motion_status;
   GripperFaultStatus fault_status;
-  uint8_t finger_a_position_cmd_echo;
-  uint8_t finger_a_position;
-  uint8_t finger_a_current;
-  uint8_t finger_b_position_cmd_echo;
-  uint8_t finger_b_position;
-  uint8_t finger_b_current;
-  uint8_t finger_c_position_cmd_echo;
-  uint8_t finger_c_position;
-  uint8_t finger_c_current;
-  uint8_t scissor_position_cmd_echo;
-  uint8_t scissor_position;
-  uint8_t scissor_current;
+  // These need to be doubles to bind to the state interfaces, but they are actually uint8_t.
+  // We have helper functions that convert 0-255 to 0-1.
+  double finger_a_position_cmd_echo;
+  double finger_a_position;
+  double finger_a_current;
+  double finger_b_position_cmd_echo;
+  double finger_b_position;
+  double finger_b_current;
+  double finger_c_position_cmd_echo;
+  double finger_c_position;
+  double finger_c_current;
+  double scissor_position_cmd_echo;
+  double scissor_position;
+  double scissor_current;
   ObjectDetectionStatus finger_a_object_detection_status;
   ObjectDetectionStatus finger_b_object_detection_status;
   ObjectDetectionStatus finger_c_object_detection_status;
@@ -178,24 +180,12 @@ public:
   virtual FullGripperStatus get_full_status() = 0;
   virtual void write(IndependantControlCommand  const &cmd) = 0;
 
-  virtual void set_activate(uint8_t activate) = 0;  // akin to "initialization"
-  virtual void set_grasping_mode(uint8_t grasping_mode) = 0;
-  virtual void set_go_to(uint8_t go_to) = 0;
-  virtual void set_auto_release(uint8_t auto_release) = 0;
-  virtual void set_individual_finger_control(uint8_t individual_finger_control) = 0;
-  virtual void set_individual_scissor_control(uint8_t individual_scissor_control) = 0;
-  virtual void set_finger_a_position(uint8_t pos) = 0;
-  virtual void set_finger_a_speed(uint8_t speed) = 0;
-  virtual void set_finger_a_force(uint8_t force) = 0;
-  virtual void set_finger_b_position(uint8_t pos) = 0;
-  virtual void set_finger_b_speed(uint8_t speed) = 0;
-  virtual void set_finger_b_force(uint8_t force) = 0;
-  virtual void set_finger_c_position(uint8_t pos) = 0;
-  virtual void set_finger_c_speed(uint8_t speed) = 0;
-  virtual void set_finger_c_force(uint8_t force) = 0;
-  virtual void set_scissor_position(uint8_t pos) = 0;
-  virtual void set_scissor_speed(uint8_t speed) = 0;
-  virtual void set_scissor_force(uint8_t force) = 0;
+//  virtual void set_activate(uint8_t activate) = 0;  // akin to "initialization"
+//  virtual void set_grasping_mode(uint8_t grasping_mode) = 0;
+//  virtual void set_go_to(uint8_t go_to) = 0;
+//  virtual void set_auto_release(uint8_t auto_release) = 0;
+//  virtual void set_individual_finger_control(uint8_t individual_finger_control) = 0;
+//  virtual void set_individual_scissor_control(uint8_t individual_scissor_control) = 0;
 };
 
 }  // namespace robotiq_3f_driver

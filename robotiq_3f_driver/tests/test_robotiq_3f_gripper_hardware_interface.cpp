@@ -123,7 +123,7 @@ TEST(TestRobotiq3fGripperHardwareInterface, load_urdf)
 
 /**
  * In this test we startup the hardware interface with a fake driver so we can
- * test read and write operations.
+ * test read and send_independent_control_command operations.
  */
 TEST(TestRobotiq3fGripperHardwareInterface, grip)
 {

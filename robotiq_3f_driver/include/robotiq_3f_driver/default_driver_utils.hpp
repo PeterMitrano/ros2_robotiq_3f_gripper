@@ -40,7 +40,7 @@
 namespace robotiq_3f_driver::default_driver_utils
 {
 
-/** These represent read and write actions. */
+/** These represent read and send_independent_control_command actions. */
 enum class FunctionCode : uint8_t
 {
   ReadInputRegisters = 0x03,  // referred to as read "Holding" registers in the manual
@@ -71,6 +71,7 @@ GoTo get_go_to_status(const uint8_t& reg);
 const std::string go_to_to_string(const GoTo go_to);
 
 GripperStatus get_gripper_status(const uint8_t& reg);
+const std::string gripper_status_to_string(const GripperStatus gripper_activation_status);
 
 MotionStatus get_motion_status(const uint8_t& reg);
 const std::string motion_status_to_string(const MotionStatus motionStatus);

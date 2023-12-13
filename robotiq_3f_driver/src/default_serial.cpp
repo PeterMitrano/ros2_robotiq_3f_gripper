@@ -71,7 +71,7 @@ void DefaultSerial::write(const std::vector<uint8_t>& data)
   if (num_bytes_written != data.size())
   {
     const auto error_msg =
-        "Attempted to write " + std::to_string(data.size()) + " bytes, but wrote " + std::to_string(num_bytes_written);
+        "Attempted to send_independent_control_command " + std::to_string(data.size()) + " bytes, but wrote " + std::to_string(num_bytes_written);
     THROW(serial::IOException, error_msg.c_str());
   }
 }

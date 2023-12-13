@@ -40,6 +40,7 @@
 #include <robotiq_3f_driver/driver_exception.hpp>
 
 #include <rclcpp/logging.hpp>
+#include <type_traits>
 
 // +-----+-------------------------------+-------------------------------+
 // |     | Gripper Input Registers       | Gripper Output Registers      |
@@ -151,42 +152,55 @@ void DefaultDriver::activate()
   // Ensure no accidental motion, since we don't know what values the command registers might have
   default_driver_utils::set_go_to(action_request_register, GoTo::STOP);
 
-  uint8_t gripper_options_register = 0b00000000;
+  //  uint8_t gripper_options_register = 0b00000000;
   //  default_driver_utils::set_individual_control_mode(gripper_options_register, true);
   //  default_driver_utils::set_individual_scissor_control_mode(gripper_options_register, true);
+  build_request_and_send({ action_request_register, 0x00 }, kActivateResponseSize);
 
+  wait_until_activated();
+}
+
+void DefaultDriver::build_request_and_send(std::vector<uint8_t> regs, size_t const response_size)
+{
+  // check that we don't send so much data that the size won't fit in uint8_t
+  if (regs.size() > std::numeric_limits<uint8_t>::max())
+  {
+    throw DriverException{ "Too many registers to send_independent_control_command!" };
+  }
+
+  // since there are two robotiq registers per modbus register, we must always send a even number of robotiq registers
+  if (regs.size() % 2 != 0)
+  {
+    throw DriverException{ "Must send an even number of robotiq registers!" };
+  }
+
+  uint8_t const num_robotiq_registers = regs.size();
+  uint8_t const num_modbus_registers = num_robotiq_registers / 2;
   std::vector<uint8_t> request = {
-    slave_address_,
-    static_cast<uint8_t>(default_driver_utils::FunctionCode::PresetMultipleRegisters),
-    data_utils::get_msb(kActionRequestRegisterAddress),
-    data_utils::get_lsb(kActionRequestRegisterAddress),
-    0x00,                      // Number of registers to write MSB.
-    0x03,                      // Number of registers to write LSB.
-    2 * 0x03,                  // Number of bytes to write. 2 robotiq registers per modbus register! (See 4.7.1)
-    action_request_register,   // Action register.
-    gripper_options_register,  // Gripper options
-    0x00,                      // Not totally sure we need to write all these zeros, but I guess it can't hurt?
-    0x00,
-    0x00,
-    0x00,
+    slave_address_, static_cast<uint8_t>(default_driver_utils::FunctionCode::PresetMultipleRegisters),
+    data_utils::get_msb(kActionRequestRegisterAddress), data_utils::get_lsb(kActionRequestRegisterAddress),
+    data_utils::get_msb(num_modbus_registers), data_utils::get_lsb(num_modbus_registers),
+    // Number of bytes to send_independent_control_command, which is number of robotiq registers since they're one byte each.
+    num_robotiq_registers
   };
+  request.insert(request.end(), regs.begin(), regs.end());
   auto crc = crc_utils::compute_crc(request);
   request.push_back(data_utils::get_msb(crc));
   request.push_back(data_utils::get_lsb(crc));
 
-  auto response = send(request, 8);
+  auto response = send(request, response_size);
   if (response.empty())
   {
     throw DriverException{ "Failed to activate the gripper." };
   }
+}
 
-  // now wait until the activation is complete
+void DefaultDriver::wait_until_activated()
+{  // now wait until the activation is complete
   while (true)
   {
     auto status = get_full_status();
-    RCLCPP_INFO_STREAM(kLogger, "Activation status: " << default_driver_utils::gripper_activation_status_to_string(
-                                    status.activation_status));
-    if (status.activation_status == GripperActivationStatus::ACTIVE)
+    if (status.gripper_status == GripperStatus::ACTIVATED)
     {
       break;
     }
@@ -203,9 +217,9 @@ void DefaultDriver::deactivate()
     static_cast<uint8_t>(default_driver_utils::FunctionCode::PresetMultipleRegisters),
     data_utils::get_msb(kActionRequestRegisterAddress),
     data_utils::get_lsb(kActionRequestRegisterAddress),
-    0x00,      // Number of registers to write MSB.
-    0x01,      // Number of registers to write LSB.
-    2 * 0x01,  // Number of bytes to write.
+    0x00,      // Number of registers to send_independent_control_command MSB.
+    0x01,      // Number of registers to send_independent_control_command LSB.
+    2 * 0x01,  // Number of bytes to send_independent_control_command.
     0x00,      // Action register.
     0x00,
   };
@@ -271,55 +285,95 @@ FullGripperStatus DefaultDriver::get_full_status()
   return status;
 }
 
-void DefaultDriver::write(IndependantControlCommand const& cmd)
+void DefaultDriver::send_independent_control_command(IndependentControlCommand const& cmd)
 {
   // set all the position, speed, and force registers, as well as the GO_TO bits
   // the ACT bit must also still be set
-
   uint8_t action_request_register = 0b00000000;
   default_driver_utils::set_gripper_activation(action_request_register, GripperActivationAction::ACTIVE);
   // Ensure no accidental motion, since we don't know what values the command registers might have
-  default_driver_utils::set_go_to(action_request_register, GoTo::STOP);
+  default_driver_utils::set_go_to(action_request_register, GoTo::GO_TO);
 
   uint8_t gripper_options_register = 0b00000000;
   default_driver_utils::set_individual_control_mode(gripper_options_register, true);
   default_driver_utils::set_individual_scissor_control_mode(gripper_options_register, true);
 
-  std::vector<uint8_t> request = {
-    slave_address_,
-    static_cast<uint8_t>(default_driver_utils::FunctionCode::PresetMultipleRegisters),
-    data_utils::get_msb(kActionRequestRegisterAddress),
-    data_utils::get_lsb(kActionRequestRegisterAddress),
-    data_utils::get_msb(kNumModBusRegisters),
-    data_utils::get_lsb(kNumModBusRegisters),
-    2 * kNumModBusRegisters,  // Number of bytes to write.
-    action_request_register,
-    gripper_options_register,
-    default_driver_utils::double_to_uint8(cmd.finger_a_position),
-    default_driver_utils::double_to_uint8(cmd.finger_a_velocity),
-    default_driver_utils::double_to_uint8(cmd.finger_a_force),
-    default_driver_utils::double_to_uint8(cmd.finger_b_position),
-    default_driver_utils::double_to_uint8(cmd.finger_b_velocity),
-    default_driver_utils::double_to_uint8(cmd.finger_b_force),
-    default_driver_utils::double_to_uint8(cmd.finger_c_position),
-    default_driver_utils::double_to_uint8(cmd.finger_c_velocity),
-    default_driver_utils::double_to_uint8(cmd.finger_c_force),
-    default_driver_utils::double_to_uint8(cmd.scissor_position),
-    default_driver_utils::double_to_uint8(cmd.scissor_velocity),
-    default_driver_utils::double_to_uint8(cmd.scissor_force),
-    0x00,  // Reserved.
-  };
-  auto crc = crc_utils::compute_crc(request);
-  request.push_back(data_utils::get_msb(crc));
-  request.push_back(data_utils::get_lsb(crc));
-
-  auto response = send(request, kResponseSizeHeaderSize + 2 * kNumModBusRegisters);
-  if (response.empty())
-  {
-    throw DriverException{ "Failed send commands to gripper." };
-  }
+  build_request_and_send(
+      {
+          action_request_register,
+          gripper_options_register,
+          0x00,  // This register must always be empty
+          default_driver_utils::double_to_uint8(cmd.finger_a_position),
+          default_driver_utils::double_to_uint8(cmd.finger_a_velocity),
+          default_driver_utils::double_to_uint8(cmd.finger_a_force),
+          default_driver_utils::double_to_uint8(cmd.finger_b_position),
+          default_driver_utils::double_to_uint8(cmd.finger_b_velocity),
+          default_driver_utils::double_to_uint8(cmd.finger_b_force),
+          default_driver_utils::double_to_uint8(cmd.finger_c_position),
+          default_driver_utils::double_to_uint8(cmd.finger_c_velocity),
+          default_driver_utils::double_to_uint8(cmd.finger_c_force),
+          default_driver_utils::double_to_uint8(cmd.scissor_position),
+          default_driver_utils::double_to_uint8(cmd.scissor_velocity),
+          default_driver_utils::double_to_uint8(cmd.scissor_force),
+          0x00,  // Reserved.
+      },
+      8);
 
   // NOTE: Do I need to check the response?
+}
+
+void DefaultDriver::send_simple_control_command(GraspingMode const& mode, double position, double speed, double force)
+{
+  uint8_t action_request_register = 0b00000000;
+  default_driver_utils::set_gripper_activation(action_request_register, GripperActivationAction::ACTIVE);
+  default_driver_utils::set_go_to(action_request_register, GoTo::GO_TO);
+  default_driver_utils::set_grasping_mode(action_request_register, mode);
+
+  uint8_t gripper_options_register = 0b00000000;
+  default_driver_utils::set_individual_control_mode(gripper_options_register, false);
+  default_driver_utils::set_individual_scissor_control_mode(gripper_options_register, false);
+
+  build_request_and_send(
+      {
+          action_request_register,
+          gripper_options_register,
+          0x00,  // This register must always be empty
+          default_driver_utils::double_to_uint8(position),
+          default_driver_utils::double_to_uint8(speed),
+          default_driver_utils::double_to_uint8(force),
+          0x00,  // The rest of the registers must be empty when using Simple Control Mode
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+      },
+      8);
+}
+
+bool DefaultDriver::wait_until_reached(double timeout)
+{
+  auto const t0 = std::chrono::steady_clock::now();
+
+  while (true)
+  {
+    auto status = get_full_status();
+    if (status.motion_status == MotionStatus::STOPPED_REACHED)
+    {
+      return true;
+    }
+    auto const t1 = std::chrono::steady_clock::now();
+    auto const dt = std::chrono::duration_cast<std::chrono::duration<double>>(t1 - t0).count();
+    if (dt > timeout)
+    {
+      return false;
+    }
+  }
+
 }
 
 }  // namespace robotiq_3f_driver

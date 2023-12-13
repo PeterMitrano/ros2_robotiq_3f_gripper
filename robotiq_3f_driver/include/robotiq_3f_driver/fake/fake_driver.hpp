@@ -52,8 +52,9 @@ public:
   void activate() override;
   void deactivate() override;
   FullGripperStatus get_full_status() override;
-  void write(IndependantControlCommand const& cmd) override;
-
+  void send_independent_control_command(IndependentControlCommand const& cmd) override;
+  void send_simple_control_command(GraspingMode const& mode, double position, double speed, double force) override;
+  bool wait_until_reached(double timeout) override;
 private:
   uint8_t slave_address_ = 0x00;
 

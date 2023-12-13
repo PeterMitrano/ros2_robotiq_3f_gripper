@@ -139,14 +139,14 @@ private:
   // Factory to create the interface to interact with the hardware using the serial port.
   std::unique_ptr<DriverFactory> driver_factory_;
 
-  // We use a thread to read/write to the driver so that we don't block the hardware_interface read/write.
+  // We use a thread to read/write to the driver so that we don't block the hardware_interface read/send_independent_control_command.
   std::thread communication_thread_;
   std::atomic<bool> communication_thread_is_running_;
   void background_task();
 
   // These are the ones we bind to in the state and command interfaces.
-  // They are protected by the mutexes, since we read/write to them from the background thread.
-  IndependantControlCommand cmd_;
+  // They are protected by the mutexes, since we read/send_independent_control_command to them from the background thread.
+  IndependentControlCommand cmd_;
   FullGripperStatus status_;
 
   std::mutex state_mutex_;

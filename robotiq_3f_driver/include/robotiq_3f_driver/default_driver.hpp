@@ -63,7 +63,11 @@ public:
 
   FullGripperStatus get_full_status() override;
 
-  void write(IndependantControlCommand const& cmd) override;
+  void send_independent_control_command(IndependentControlCommand const& cmd) override;
+
+  void send_simple_control_command(GraspingMode const& mode, double position, double speed, double force) override;
+
+  bool wait_until_reached(double timeout) override;
 
 private:
   /**
@@ -76,7 +80,10 @@ private:
    */
   std::vector<uint8_t> send(const std::vector<uint8_t>& request, size_t response_size) const;
 
+  void build_request_and_send(std::vector<uint8_t> regs, size_t response_size);
+
   std::unique_ptr<Serial> serial_ = nullptr;
   uint8_t slave_address_ = 0x00;
+  void wait_until_activated();
 };
 }  // namespace robotiq_3f_driver

@@ -254,7 +254,7 @@ hardware_interface::return_type Robotiq3fGripperHardwareInterface::write([[maybe
 
 void Robotiq3fGripperHardwareInterface::background_task()
 {
-  // Read from and write to the gripper at a fixed rate set by kGripperCommsLoopPeriod.
+  // Read from and send_independent_control_command to the gripper at a fixed rate set by kGripperCommsLoopPeriod.
   while (communication_thread_is_running_.load())
   {
     try
@@ -269,7 +269,7 @@ void Robotiq3fGripperHardwareInterface::background_task()
       // Send the commands to the driver
       {
         std::lock_guard<std::mutex> lock(cmd_mutex_);
-        driver_->write(cmd_);
+        driver_->send_independent_control_command(cmd_);
       }
     }
     catch (std::exception& e)

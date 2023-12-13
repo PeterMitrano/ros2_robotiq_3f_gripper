@@ -137,7 +137,7 @@ struct FullGripperStatus
 
 // We use this structure to hold our command interface values.
 // NOTE: should these be zero initialized or NaN initialized?
-struct IndependantControlCommand
+struct IndependentControlCommand
 {
   double finger_a_position;
   double finger_b_position;
@@ -183,15 +183,16 @@ public:
 
   virtual FullGripperStatus get_full_status() = 0;
 
-  virtual void write(IndependantControlCommand const& cmd) = 0;
+  virtual void send_independent_control_command(IndependentControlCommand const& cmd) = 0;
 
-  // TODO: how to expose these individual functions? ROS services in the driver? or in a custom controller?
-  //  virtual void set_activate(uint8_t activate) = 0;  // akin to "initialization"
-  //  virtual void set_grasping_mode(uint8_t grasping_mode) = 0;
-  //  virtual void set_go_to(uint8_t go_to) = 0;
-  //  virtual void set_auto_release(uint8_t auto_release) = 0;
-  //  virtual void set_individual_finger_control(uint8_t individual_finger_control) = 0;
-  //  virtual void set_individual_scissor_control(uint8_t individual_scissor_control) = 0;
+  virtual void send_simple_control_command(GraspingMode const& mode, double position, double speed, double force) = 0;
+
+  /**
+   *
+   * @param timeout
+   * @return True if reached, False if timed out
+   */
+  virtual bool wait_until_reached(double timeout) = 0;
 };
 
 }  // namespace robotiq_3f_driver

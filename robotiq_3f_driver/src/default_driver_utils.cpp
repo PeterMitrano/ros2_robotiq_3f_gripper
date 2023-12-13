@@ -265,6 +265,15 @@ GripperStatus get_gripper_status(const uint8_t& reg)
   return map.at(reg & default_driver_utils::gIMC_mask);
 }
 
+const std::string gripper_status_to_string(const GripperStatus gripper_status)
+{
+  static std::map<GripperStatus, std::string> map = { { GripperStatus::RESET, "RESET" },
+                                                      { GripperStatus::ACTIVATION_IN_PROGRESS, "ACTIVATION_IN_PROGRESS" },
+                                                      { GripperStatus::MODE_CHANGE_IN_PROGRESS, "MODE_CHANGE_IN_PROGRESS" },
+                                                      { GripperStatus::ACTIVATED, "ACTIVATED" } };
+  return map.at(gripper_status);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// motion status.
 ///

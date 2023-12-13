@@ -194,7 +194,7 @@ constexpr uint8_t gACT_mask = 0b00000001;
 GripperActivationStatus get_gripper_activation_status(const uint8_t& reg)
 {
   static const std::unordered_map<uint8_t, GripperActivationStatus> map{
-    { 0b00000000, GripperActivationStatus::RESET }, { 0b00000001, GripperActivationStatus::ACTIVE }
+    { 0b00000000, GripperActivationStatus::INACTIVE}, { 0b00000001, GripperActivationStatus::ACTIVE }
   };
   return map.at(reg & default_driver_utils::gACT_mask);
 }
@@ -202,7 +202,7 @@ GripperActivationStatus get_gripper_activation_status(const uint8_t& reg)
 const std::string gripper_activation_status_to_string(const GripperActivationStatus gripper_activation_status)
 {
   static std::map<GripperActivationStatus, std::string> map = {
-    { GripperActivationStatus::RESET, "ClearGripperFaultStatus" },
+    { GripperActivationStatus::INACTIVE, "Inactive" },
     { GripperActivationStatus::ACTIVE, "Activate" },
   };
   return map.at(gripper_activation_status);

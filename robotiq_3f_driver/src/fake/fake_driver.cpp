@@ -41,36 +41,6 @@ void FakeDriver::set_slave_address(uint8_t slave_address)
   RCLCPP_INFO(kLogger, "slave_address set to: %d", slave_address);
 }
 
-void FakeDriver::set_mode(const GripperMode gripper_mode)
-{
-  gripper_mode_ = gripper_mode;
-  RCLCPP_INFO(kLogger, "mode set to: %s", default_driver_utils::gripper_mode_to_string(gripper_mode).c_str());
-}
-
-void FakeDriver::set_grip_max_vacuum_pressure(float vacuum_pressure)
-{
-  grip_max_vacuum_pressure_ = vacuum_pressure;
-  RCLCPP_INFO(kLogger, "grip max vacuum pressure set to: %fkPa", vacuum_pressure);
-}
-
-void FakeDriver::set_grip_min_vacuum_pressure(float vacuum_pressure)
-{
-  grip_min_vacuum_pressure_ = vacuum_pressure;
-  RCLCPP_INFO(kLogger, "grip min vacuum pressure set to: %fkPa", vacuum_pressure);
-}
-
-void FakeDriver::set_grip_timeout(std::chrono::milliseconds timeout)
-{
-  grip_timeout_ = timeout;
-  RCLCPP_INFO(kLogger, "grip timeout set to: %ldms", timeout.count());
-}
-
-void FakeDriver::set_release_timeout(std::chrono::milliseconds timeout)
-{
-  release_timeout_ = timeout;
-  RCLCPP_INFO(kLogger, "release timeout set to: %ldms", timeout.count());
-}
-
 bool FakeDriver::connect()
 {
   connected_ = true;
@@ -96,34 +66,14 @@ void FakeDriver::deactivate()
   activated_ = false;
 }
 
-void FakeDriver::grip()
+FullGripperStatus FakeDriver::get_full_status()
 {
-  regulate_ = true;
-  RCLCPP_INFO(kLogger, "Grip enable.");
-}
-
-void FakeDriver::release()
-{
-  regulate_ = false;
-  RCLCPP_INFO(kLogger, "Grip released.");
-}
-
-GripperStatus FakeDriver::get_status()
-{
-  GripperStatus status;
-  status.gripper_activation_action =
-      activated_ ? GripperActivationAction::Activate : GripperActivationAction::ClearGripperFaultStatus;
-  status.gripper_mode = gripper_mode_;
-  status.gripper_regulate_action =
-      regulate_ ? GripperRegulateAction::FollowRequestedVacuumParameters : GripperRegulateAction::StopVacuumGenerator;
-  status.gripper_activation_status =
-      activated_ ? GripperActivationStatus::GripperOperational : GripperActivationStatus::GripperNotActivated;
-  status.gripper_fault_status = GripperFaultStatus::NoFault;
-  status.actuator_status = regulate_ ? ActuatorStatus::Gripping : ActuatorStatus::PassiveReleasing;
-  status.object_detection_status =
-      regulate_ ? ObjectDetectionStatus::ObjectDetectedAtMaxPressure : ObjectDetectionStatus::NoObjectDetected;
-  status.max_vacuum_pressure = grip_max_vacuum_pressure_;
-  status.actual_vacuum_pressure = (grip_max_vacuum_pressure_ + grip_min_vacuum_pressure_) / 2;
+  FullGripperStatus status;
+  status.activation_status = activated_ ? GripperActivationStatus::ACTIVE : GripperActivationStatus::INACTIVE;
   return status;
 }
+
+void FakeDriver::write(IndependantControlCommand  const &cmd) {
+}
+
 }  // namespace robotiq_3f_driver

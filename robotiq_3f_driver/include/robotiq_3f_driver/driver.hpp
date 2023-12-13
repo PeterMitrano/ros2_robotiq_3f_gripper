@@ -39,8 +39,11 @@ enum class GripperActivationAction
   RESET,
   ACTIVE
 };
-// They are the same, but we want to be explicit about what we are doing
-using GripperActivationStatus = GripperActivationAction;
+// They are the same, but the names are clearer this way
+enum class GripperActivationStatus {
+  INACTIVE,
+  ACTIVE
+};
 
 enum class GraspingMode
 {

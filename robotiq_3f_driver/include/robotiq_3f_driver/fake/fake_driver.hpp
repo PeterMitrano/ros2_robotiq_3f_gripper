@@ -47,32 +47,18 @@ class FakeDriver : public Driver
 {
 public:
   void set_slave_address(uint8_t slave_address) override;
-  void set_mode(GripperMode gripper_mode) override;
-  void set_grip_max_vacuum_pressure(float vacuum_pressure) override;
-  void set_grip_min_vacuum_pressure(float vacuum_pressure) override;
-  void set_grip_timeout(std::chrono::milliseconds timeout) override;
-  void set_release_timeout(std::chrono::milliseconds timeout) override;
   bool connect() override;
   void disconnect() override;
   void activate() override;
   void deactivate() override;
-  void grip() override;
-  void release() override;
-  GripperStatus get_status() override;
+  FullGripperStatus get_full_status() override;
+  void write(IndependantControlCommand  const &cmd) override;
 
 private:
   uint8_t slave_address_ = 0x00;
-  GripperMode gripper_mode_ = GripperMode::Unknown;
-
-  float grip_max_vacuum_pressure_ = 0.0f;
-  float grip_min_vacuum_pressure_ = 0.0f;
-
-  std::chrono::milliseconds grip_timeout_ = std::chrono::milliseconds(100);
-  std::chrono::milliseconds release_timeout_ = std::chrono::milliseconds(100);
 
   bool connected_ = false;
   bool activated_ = false;
-  bool regulate_ = false;
 };
 
 }  // namespace robotiq_3f_driver

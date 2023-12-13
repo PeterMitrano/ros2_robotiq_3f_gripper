@@ -51,6 +51,7 @@ public:
    */
   explicit DefaultDriver(std::unique_ptr<Serial> serial);
 
+  void set_slave_address(uint8_t slave_address) override;
   bool connect() override;
   void disconnect() override;
 

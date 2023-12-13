@@ -89,6 +89,12 @@ DefaultDriver::DefaultDriver(std::unique_ptr<Serial> serial) : serial_{ std::mov
 
 std::vector<uint8_t> DefaultDriver::send(const std::vector<uint8_t>& request, size_t response_size) const
 {
+  std::stringstream req_ss;
+  for (auto const& d : request)
+  {
+    req_ss << std::hex << static_cast<int>(d) << " ";
+  }
+  RCLCPP_DEBUG_STREAM(kLogger, "req: " << req_ss.str().c_str());
   std::vector<uint8_t> response;
   response.reserve(response_size);
 
@@ -118,6 +124,12 @@ std::vector<uint8_t> DefaultDriver::send(const std::vector<uint8_t>& request, si
   return response;
 }
 
+void DefaultDriver::set_slave_address(uint8_t slave_address)
+{
+  slave_address_ = slave_address;
+  RCLCPP_INFO(kLogger, "slave_address set to: %d", slave_address);
+}
+
 bool DefaultDriver::connect()
 {
   serial_->open();
@@ -140,8 +152,8 @@ void DefaultDriver::activate()
   default_driver_utils::set_go_to(action_request_register, GoTo::STOP);
 
   uint8_t gripper_options_register = 0b00000000;
-  default_driver_utils::set_individual_control_mode(gripper_options_register, true);
-  default_driver_utils::set_individual_scissor_control_mode(gripper_options_register, true);
+  //  default_driver_utils::set_individual_control_mode(gripper_options_register, true);
+  //  default_driver_utils::set_individual_scissor_control_mode(gripper_options_register, true);
 
   std::vector<uint8_t> request = {
     slave_address_,
@@ -153,7 +165,7 @@ void DefaultDriver::activate()
     2 * 0x03,                  // Number of bytes to write. 2 robotiq registers per modbus register! (See 4.7.1)
     action_request_register,   // Action register.
     gripper_options_register,  // Gripper options
-    0x00, // Not totally sure we need to write all these zeros, but I guess it can't hurt?
+    0x00,                      // Not totally sure we need to write all these zeros, but I guess it can't hurt?
     0x00,
     0x00,
     0x00,
@@ -162,7 +174,7 @@ void DefaultDriver::activate()
   request.push_back(data_utils::get_msb(crc));
   request.push_back(data_utils::get_lsb(crc));
 
-  auto response = send(request, kActivateResponseSize);
+  auto response = send(request, 8);
   if (response.empty())
   {
     throw DriverException{ "Failed to activate the gripper." };
@@ -172,6 +184,8 @@ void DefaultDriver::activate()
   while (true)
   {
     auto status = get_full_status();
+    RCLCPP_INFO_STREAM(kLogger, "Activation status: " << default_driver_utils::gripper_activation_status_to_string(
+                                    status.activation_status));
     if (status.activation_status == GripperActivationStatus::ACTIVE)
     {
       break;

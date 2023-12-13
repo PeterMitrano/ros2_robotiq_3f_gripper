@@ -91,11 +91,6 @@ Robotiq3fGripperHardwareInterface::on_init(const hardware_interface::HardwareInf
       return CallbackReturn::ERROR;
     }
 
-    for (uint i = 0; i < info_.gpios.size(); i++)
-    {
-      auto gpio = info_.gpios[i];
-    }
-
     driver_ = driver_factory_->create(info);
 
     return CallbackReturn::SUCCESS;

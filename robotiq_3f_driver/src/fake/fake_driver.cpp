@@ -86,4 +86,9 @@ bool FakeDriver::wait_until_reached(double timeout)
   return true;
 }
 
+void FakeDriver::clear_faults()
+{
+}
+
 }  // namespace robotiq_3f_driver
+

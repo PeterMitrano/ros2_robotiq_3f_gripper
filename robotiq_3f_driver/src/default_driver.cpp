@@ -160,6 +160,13 @@ void DefaultDriver::activate()
   wait_until_activated();
 }
 
+void DefaultDriver::clear_faults()
+{
+  RCLCPP_INFO(kLogger, "Clearing faults...");
+
+  build_request_and_send({ 0x00, 0x00}, 8);
+}
+
 void DefaultDriver::build_request_and_send(std::vector<uint8_t> regs, size_t const response_size)
 {
   // check that we don't send so much data that the size won't fit in uint8_t

@@ -187,6 +187,8 @@ public:
 
   virtual void send_simple_control_command(GraspingMode const& mode, double position, double speed, double force) = 0;
 
+  virtual void clear_faults() = 0;
+
   /**
    *
    * @param timeout

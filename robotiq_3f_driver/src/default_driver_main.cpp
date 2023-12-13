@@ -28,6 +28,8 @@ int main()
 
   driver.connect();
 
+  driver.clear_faults();
+
   driver.activate();
 
 //  IndependentControlCommand cmd;
@@ -64,14 +66,17 @@ int main()
 
   sleep(1);
 
-  driver.send_simple_control_command(GraspingMode::BASIC, 0.5, 1.0, 1.0);
-  driver.wait_until_reached(1.0);
+  driver.send_simple_control_command(GraspingMode::BASIC, 1.0, 1.0, 1.0);
+  std::cout << driver.wait_until_reached(5.0) << std::endl;
 
-  driver.send_simple_control_command(GraspingMode::PINCH, 0.5, 1.0, 1.0);
-  driver.wait_until_reached(1.0);
+  driver.send_simple_control_command(GraspingMode::BASIC, 0.0, 1.0, 1.0);
+  std::cout << driver.wait_until_reached(5.0) << std::endl;
 
-  driver.send_simple_control_command(GraspingMode::WIDE, 0.5, 1.0, 1.0);
-  driver.wait_until_reached(1.0);
+  driver.send_simple_control_command(GraspingMode::BASIC, 1.0, 0.4, 0.1);
+  std::cout << driver.wait_until_reached(5.0) << std::endl;
+
+  driver.send_simple_control_command(GraspingMode::BASIC, 0.0, 1.0, 0.1);
+  std::cout << driver.wait_until_reached(5.0) << std::endl;
 
   sleep(3);
 

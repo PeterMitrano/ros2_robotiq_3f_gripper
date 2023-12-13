@@ -69,6 +69,8 @@ public:
 
   bool wait_until_reached(double timeout) override;
 
+  void clear_faults() override;
+
 private:
   /**
    * With this command we send a request and wait for a response of given size.

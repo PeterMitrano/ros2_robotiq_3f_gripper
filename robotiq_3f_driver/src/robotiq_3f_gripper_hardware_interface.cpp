@@ -140,8 +140,24 @@ std::vector<hardware_interface::StateInterface> Robotiq3fGripperHardwareInterfac
   std::vector<hardware_interface::StateInterface> state_interfaces;
   try
   {
-    state_interfaces.emplace_back(hardware_interface::StateInterface("finger_a", hardware_interface::HW_IF_POSITION,
-                                                                     &safe_state_.state.load().finger_a_position));
+    state_interfaces.emplace_back("finger_a_cmd_echo", hardware_interface::HW_IF_POSITION,
+                                  &status_.finger_a_position_cmd_echo);
+    state_interfaces.emplace_back("finger_b_cmd_echo", hardware_interface::HW_IF_POSITION,
+                                  &status_.finger_b_position_cmd_echo);
+    state_interfaces.emplace_back("finger_c_cmd_echo", hardware_interface::HW_IF_POSITION,
+                                  &status_.finger_c_position_cmd_echo);
+    state_interfaces.emplace_back("scissor_cmd_echo", hardware_interface::HW_IF_POSITION,
+                                  &status_.scissor_position_cmd_echo);
+    state_interfaces.emplace_back("finger_a", hardware_interface::HW_IF_POSITION, &status_.finger_a_position);
+    state_interfaces.emplace_back("finger_b", hardware_interface::HW_IF_POSITION, &status_.finger_b_position);
+    state_interfaces.emplace_back("finger_c", hardware_interface::HW_IF_POSITION, &status_.finger_c_position);
+    state_interfaces.emplace_back("scissor", hardware_interface::HW_IF_POSITION, &status_.scissor_position);
+    state_interfaces.emplace_back("finger_a_current", hardware_interface::HW_IF_EFFORT, &status_.finger_a_current);
+    state_interfaces.emplace_back("finger_b_current", hardware_interface::HW_IF_EFFORT, &status_.finger_b_current);
+    state_interfaces.emplace_back("finger_c_current", hardware_interface::HW_IF_EFFORT, &status_.finger_c_current);
+    state_interfaces.emplace_back("scissor_current", hardware_interface::HW_IF_EFFORT, &status_.scissor_current);
+
+    // TODO: how do we publish the object detection status? It's not a double. So maybe create a message type and publish that?
   }
   catch (const std::exception& ex)
   {
@@ -158,15 +174,18 @@ std::vector<hardware_interface::CommandInterface> Robotiq3fGripperHardwareInterf
   std::vector<hardware_interface::CommandInterface> command_interfaces;
   try
   {
-    if (get_gpios_command_interface(kGripperPrefixName, kGripCommandInterfaceName, info_).has_value())
-    {
-      command_interfaces.emplace_back(
-          hardware_interface::CommandInterface(kGripperPrefixName, kGripCommandInterfaceName, &gripper_cmds_.grip_cmd));
-    }
-    else
-    {
-      RCLCPP_ERROR(kLogger, "Command interface %s/%s not found.", kGripperPrefixName, kGripCommandInterfaceName);
-    }
+    command_interfaces.emplace_back("finger_a_position", hardware_interface::HW_IF_POSITION, &cmd_.finger_a_position);
+    command_interfaces.emplace_back("finger_b_position", hardware_interface::HW_IF_POSITION, &cmd_.finger_b_position);
+    command_interfaces.emplace_back("finger_c_position", hardware_interface::HW_IF_POSITION, &cmd_.finger_c_position);
+    command_interfaces.emplace_back("scissor_position", hardware_interface::HW_IF_POSITION, &cmd_.scissor_position);
+    command_interfaces.emplace_back("finger_a_velocity", hardware_interface::HW_IF_VELOCITY, &cmd_.finger_a_velocity);
+    command_interfaces.emplace_back("finger_b_velocity", hardware_interface::HW_IF_VELOCITY, &cmd_.finger_b_velocity);
+    command_interfaces.emplace_back("finger_c_velocity", hardware_interface::HW_IF_VELOCITY, &cmd_.finger_c_velocity);
+    command_interfaces.emplace_back("scissor_velocity", hardware_interface::HW_IF_VELOCITY, &cmd_.scissor_velocity);
+    command_interfaces.emplace_back("finger_a_force", hardware_interface::HW_IF_EFFORT, &cmd_.finger_a_force);
+    command_interfaces.emplace_back("finger_b_force", hardware_interface::HW_IF_EFFORT, &cmd_.finger_b_force);
+    command_interfaces.emplace_back("finger_c_force", hardware_interface::HW_IF_EFFORT, &cmd_.finger_c_force);
+    command_interfaces.emplace_back("scissor_force", hardware_interface::HW_IF_EFFORT, &cmd_.scissor_force);
   }
   catch (const std::exception& ex)
   {
@@ -224,40 +243,17 @@ Robotiq3fGripperHardwareInterface::on_deactivate([[maybe_unused]] const rclcpp_l
 hardware_interface::return_type Robotiq3fGripperHardwareInterface::read([[maybe_unused]] const rclcpp::Time& time,
                                                                         [[maybe_unused]] const rclcpp::Duration& period)
 {
-  // A state interface cannot be linked to atomic double values, only
-  // double values. We must transfer the content of the atomic value, which is
-  // set by the background thread, into the state interface value.
-  try
-  {
-    gripper_status_.grip_cmd = safe_gripper_status_.grip_cmd.load();
-    gripper_status_.object_detection_status = safe_gripper_status_.object_detection_status.load();
-  }
-  catch (const std::exception& ex)
-  {
-    set_state(rclcpp_lifecycle::State(lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED,
-                                      hardware_interface::lifecycle_state_names::UNCONFIGURED));
-    return hardware_interface::return_type::ERROR;
-  }
+  // Read doesn't need to do anything, since the backgorund thread is already copying data into the status_ struct,
+  // which is bound to the state interface.
   return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type Robotiq3fGripperHardwareInterface::write([[maybe_unused]] const rclcpp::Time& time,
                                                                          [[maybe_unused]] const rclcpp::Duration& period)
 {
-  // A command interface cannot be linked to atomic double values, only
-  // double values. We must transfer the content of the command interface
-  // double value into an atomic double so it can be read by the background
-  // thread.
-  try
-  {
-    safe_cmd_.grip_cmd.store(gripper_cmds_.grip_cmd);
-  }
-  catch (const std::exception& ex)
-  {
-    set_state(rclcpp_lifecycle::State(lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED,
-                                      hardware_interface::lifecycle_state_names::UNCONFIGURED));
-    return hardware_interface::return_type::ERROR;
-  }
+  // Write doesn't need to do anything, since the command interface is bound to the cmd_ struct, which is copied into
+  // the driver in the background thread.
+
   return hardware_interface::return_type::OK;
 }
 
@@ -268,28 +264,18 @@ void Robotiq3fGripperHardwareInterface::background_task()
   {
     try
     {
-      // Retrieve current status and update state interfaces
-      const auto status = driver_->get_full_status();
-      safe_gripper_status_.object_detection_status.store(
-          default_driver_utils::object_detection_to_double(status.object_detection_status));
-
-      // If the gripper or release command is successful, the gripper_cmd state
-      // interface value will follow the gripper_cmd command interface value.
-      const auto grip_cmd = safe_cmd_.grip_cmd.load();
-      const auto grip_state = safe_gripper_status_.grip_cmd.load();
-
-      if (is_false(grip_state) && is_true(grip_cmd))
+      // Retrieve current status and update state interfaces, and copy the status into the status_ struct.
+      // make sure to lock the mutex while we're reading and writing to the status_ struct.
       {
-        driver_->grip();
-        safe_gripper_status_.grip_cmd.store(grip_cmd);
-      }
-      else if (is_true(grip_state) && is_false(grip_cmd))
-      {
-        driver_->release();
-        safe_gripper_status_.grip_cmd.store(grip_cmd);
+        std::lock_guard<std::mutex> lock(state_mutex_);
+        status_ = driver_->get_full_status();
       }
 
-      driver_->
+      // Send the commands to the driver
+      {
+        std::lock_guard<std::mutex> lock(cmd_mutex_);
+        driver_->write(cmd_);
+      }
     }
     catch (std::exception& e)
     {

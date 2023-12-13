@@ -29,6 +29,7 @@
 #pragma once
 
 #include <atomic>
+#include <mutex>
 #include <thread>
 #include <memory>
 #include <vector>
@@ -49,53 +50,6 @@
 
 namespace robotiq_3f_driver
 {
-
-// We use this structure to hold our command interface values.
-struct Command
-{
-  double finger_a_position;
-  double finger_b_position;
-  double finger_c_position;
-  double scissor_position;
-};
-
-// We use this structure to hold a thread-safe copy of our command interface values.
-struct SafeCommand
-{
-  std::atomic<Command> cmd;
-};
-
-// We use this structure to hold our state interface values.
-struct State
-{
-  FullGripperStatus status;
-
-  double finger_a_position_cmd_echo;
-  double finger_a_position;
-  double finger_a_current;
-  ObjectDetectionStatus finger_a_object_detection_status;
-
-  double finger_b_position_cmd_echo;
-  double finger_b_position;
-  double finger_b_current;
-  ObjectDetectionStatus finger_b_object_detection_status;
-
-  double finger_c_position_cmd_echo;
-  double finger_c_position;
-  double finger_c_current;
-  ObjectDetectionStatus finger_c_object_detection_status;
-
-  double scissor_position_cmd_echo;
-  double scissor_position;
-  double scissor_current;
-  ObjectDetectionStatus scissor_object_detection_status;
-};
-
-// We use this structure to hold a thread-safe copy of our state interface values.
-struct SafeState
-{
-  std::atomic<State> state;
-};
 
 class Robotiq3fGripperHardwareInterface : public hardware_interface::SystemInterface
 {
@@ -190,10 +144,13 @@ private:
   std::atomic<bool> communication_thread_is_running_;
   void background_task();
 
-  // This stores thread-safe copies of command and state, since we use a background thread to constantly read/write to
-  // the hardware
-  SafeCommand safe_cmd_;
-  SafeState safe_state_;
+  // These are the ones we bind to in the state and command interfaces.
+  // They are protected by the mutexes, since we read/write to them from the background thread.
+  IndependantControlCommand cmd_;
+  FullGripperStatus status_;
+
+  std::mutex state_mutex_;
+  std::mutex cmd_mutex_;
 
 };
 }  // namespace robotiq_3f_driver

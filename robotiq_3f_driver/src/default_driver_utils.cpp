@@ -181,21 +181,21 @@ void set_individual_scissor_control_mode(uint8_t& reg, const bool individual_sci
 
 constexpr uint8_t gACT_mask = 0b00000001;
 
-GripperActivationAction get_gripper_activation_action(const uint8_t& reg)
+GripperActivationStatus get_gripper_activation_status(const uint8_t& reg)
 {
-  static const std::unordered_map<uint8_t, GripperActivationAction> map{
-    { 0b00000000, GripperActivationAction::RESET }, { 0b00000001, GripperActivationAction::ACTIVE }
+  static const std::unordered_map<uint8_t, GripperActivationStatus> map{
+    { 0b00000000, GripperActivationStatus::RESET }, { 0b00000001, GripperActivationStatus::ACTIVE }
   };
   return map.at(reg & default_driver_utils::gACT_mask);
 }
 
-const std::string gripper_activation_action_to_string(const GripperActivationAction gripper_activation_action)
+const std::string gripper_activation_status_to_string(const GripperActivationStatus gripper_activation_status)
 {
-  static std::map<GripperActivationAction, std::string> map = {
-    { GripperActivationAction::RESET, "ClearGripperFaultStatus" },
-    { GripperActivationAction::ACTIVE, "Activate" },
+  static std::map<GripperActivationStatus, std::string> map = {
+    { GripperActivationStatus::RESET, "ClearGripperFaultStatus" },
+    { GripperActivationStatus::ACTIVE, "Activate" },
   };
-  return map.at(gripper_activation_action);
+  return map.at(gripper_activation_status);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

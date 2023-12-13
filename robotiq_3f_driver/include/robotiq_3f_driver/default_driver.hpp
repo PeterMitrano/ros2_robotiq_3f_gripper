@@ -60,6 +60,10 @@ public:
   /** Deactivate the gripper. */
   void deactivate() override;
 
+  FullGripperStatus get_full_status() override;
+
+  void write(IndependantControlCommand  const &cmd) override;
+
 private:
   /**
    * With this command we send a request and wait for a response of given size.

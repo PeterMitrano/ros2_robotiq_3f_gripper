@@ -5,7 +5,25 @@ controller_manager:
   ros__parameters:
     update_rate: 30 # Hz
 
-    robotiq_3f_gripper_action_controller:
-      type: robotiq_3f_controllers/Robotiq3fGripperActionController
+    # Controllers
+    # TODO: Can we also expose effort or admittance controllers that operate in individual control mode?
+
+    robotiq_3f_gripper_position_action_controller:
+      type: position_controllers/GripperActionController
+
+    robotiq_3f_gripper_effort_action_controller:
+      type: effort_controllers/GripperActionController
+
+    robotiq_3f_gripper_position_trajectory_follower:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # TODO: we might be able to use the default velocity controller, but only if it knows how to send "position" values as well
+    # It would need to send the min/max joint positions based on the sign of the velocity, and I sort of doubt it does that.
+    # Otherwise, we should write out own controllers that do that
+    # robotiq_3f_gripper_velocity_controller:
+    #   type: velocity_controllers/JointGroupVelocityController
+
+
+    # State broadcasters
     robotiq_3f_status_publisher_controller:
-      type: robotiq_3f_controllers/Robotiq3fStatusPublisherController
+      type: joint_state_broadcaster/JointStateBroadcaster

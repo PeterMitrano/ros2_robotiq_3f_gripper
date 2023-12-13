@@ -61,6 +61,7 @@
 // |  12 | 0x03F4  | Scissor Position    | 0x07DC  | Scissor Req Echo    |
 // |  13 | 0x03F5  | Scissor Speed       | 0x07DD  | Scissor Position    |
 // |  14 | 0x03F6  | Scissor Force       | 0x07DE  | Scissor Current     |
+// |  15 | 0x03F7  | Reserved            | 0x07DF  | Reserved            |
 // +-----+---------+---------------------+---------+---------------------+
 
 namespace robotiq_3f_driver
@@ -71,9 +72,16 @@ const auto kLogger = rclcpp::get_logger("DefaultDriver");
 constexpr auto kMaxRetries = 5;
 
 constexpr uint16_t kActionRequestRegisterAddress = 0x03E8;
+constexpr uint16_t kGripperOptionsRegisterAddress = 0x03E9;
+constexpr uint16_t kGripperStatusRegister = 0x07D0;
+constexpr uint16_t kObjectDetectionRegister = 0x07D1;
+constexpr uint16_t kFaultStatusRegister = 0x07D2;
+constexpr uint16_t kFingerAReqEchoRegister = 0x07D3;
+
 constexpr size_t kActivateResponseSize = 8;
 constexpr size_t kDectivateResponseSize = 8;
-
+constexpr size_t kGetFullStatusRegisterCount = 16;
+constexpr size_t kResponseSizeHeaderSize = 5;
 
 DefaultDriver::DefaultDriver(std::unique_ptr<Serial> serial) : serial_{ std::move(serial) }
 {
@@ -128,18 +136,24 @@ void DefaultDriver::activate()
   // built up the Action request register (see 4.4)
   uint8_t action_request_register = 0b00000000;
   default_driver_utils::set_gripper_activation(action_request_register, GripperActivationAction::ACTIVE);
+  // Ensure no accidental motion, since we don't know what values the command registers might have
+  default_driver_utils::set_go_to(action_request_register, GoTo::STOP);
+
+  uint8_t gripper_options_register = 0b00000000;
+  default_driver_utils::set_individual_control_mode(gripper_options_register, true);
+  default_driver_utils::set_individual_scissor_control_mode(gripper_options_register, true);
 
   std::vector<uint8_t> request = {
     slave_address_,
     static_cast<uint8_t>(default_driver_utils::FunctionCode::PresetMultipleRegisters),
     data_utils::get_msb(kActionRequestRegisterAddress),
     data_utils::get_lsb(kActionRequestRegisterAddress),
-    0x00,                     // Number of registers to write MSB.
-    0x03,                     // Number of registers to write LSB.
-    0x06,                     // Number of bytes to write.
-    action_request_register,  // Action register.
-    0x00,                     // Reserved.
-    0x00,                     // Reserved.
+    0x00,                      // Number of registers to write MSB.
+    0x03,                      // Number of registers to write LSB.
+    0x06,                      // Number of bytes to write.
+    action_request_register,   // Action register.
+    gripper_options_register,  // Gripper options
+    0x00,                      // Reserved.
   };
   auto crc = crc_utils::compute_crc(request);
   request.push_back(data_utils::get_msb(crc));
@@ -149,6 +163,16 @@ void DefaultDriver::activate()
   if (response.empty())
   {
     throw DriverException{ "Failed to activate the gripper." };
+  }
+
+  // now wait until the activation is complete
+  while (true)
+  {
+    auto status = get_full_status();
+    if (status.activation_status == GripperActivationStatus::ACTIVE)
+    {
+      break;
+    }
   }
 }
 
@@ -183,153 +207,60 @@ void DefaultDriver::deactivate()
   }
 }
 
-//void DefaultDriver::grip()
-//{
-//  RCLCPP_INFO(kLogger, "Gripping...");
-//
-//  uint8_t action_request_register = 0b00000000;
-//  default_driver_utils::set_gripper_activation(action_request_register, GripperActivationAction::Activate);
-//  default_driver_utils::set_gripper_mode(action_request_register, grasping_mode_);
-//  default_driver_utils::set_gripper_regulate_action(action_request_register,
-//                                                    GripperRegulateAction::FollowRequestedVacuumParameters);
-//
-//  const uint8_t grip_max_absolute_pressure =
-//      static_cast<uint8_t>(grasping_mode_ == GripperMode::AdvancedMode ?
-//                               std::clamp(std::round(grip_max_vacuum_pressure_ + kAtmosphericPressure),
-//                                          kMinAbsolutePressure, kMaxAbsolutePressure) :
-//                               kMinAbsolutePressure);
-//  const uint8_t grip_min_absolute_pressure = static_cast<uint8_t>(std::clamp(
-//      std::round(grip_min_vacuum_pressure_ + kAtmosphericPressure), kMinAbsolutePressure, kMaxAbsolutePressure));
-//  const auto timeout = static_cast<uint8_t>(
-//      std::chrono::duration_cast<std::chrono::duration<int, std::ratio<1, 10>>>(
-//          std::clamp(grip_timeout_, std::chrono::milliseconds(kMinTimeout), std::chrono::milliseconds(kMaxTimeout)))
-//          .count());
-//
-//  std::vector<uint8_t> request = {
-//    slave_address_,
-//    static_cast<uint8_t>(default_driver_utils::FunctionCode::PresetMultipleRegisters),
-//    data_utils::get_msb(kActionRequestRegisterAddress),
-//    data_utils::get_lsb(kActionRequestRegisterAddress),
-//    0x00,                        // Number of registers to write MSB.
-//    0x03,                        // Number of registers to write LSB.
-//    0x06,                        // Number of bytes to write.
-//    action_request_register,     // Action register.
-//    0x00,                        // Reserved.
-//    0x00,                        // Reserved.
-//    grip_max_absolute_pressure,  // Grip max absolute pressure.
-//    timeout,                     // Gripper timeout (hundredths of a second).
-//    grip_min_absolute_pressure   // Min absolute pressure
-//  };
-//
-//  auto crc = crc_utils::compute_crc(request);
-//  request.push_back(data_utils::get_msb(crc));
-//  request.push_back(data_utils::get_lsb(crc));
-//
-//  auto response = send(request, kGripResponseSize);
-//  if (response.empty())
-//  {
-//    throw DriverException{ "Failed to grip." };
-//  }
-//}
-//
-//void DefaultDriver::release()
-//{
-//  RCLCPP_INFO(kLogger, "Releasing...");
-//
-//  uint8_t action_request_register = 0b00000000;
-//  default_driver_utils::set_gripper_activation(action_request_register, GripperActivationAction::Activate);
-//  default_driver_utils::set_gripper_mode(action_request_register, grasping_mode_);
-//  default_driver_utils::set_gripper_regulate_action(action_request_register,
-//                                                    GripperRegulateAction::FollowRequestedVacuumParameters);
-//
-//  const uint8_t release_absolute_pressure = static_cast<uint8_t>(kMaxAbsolutePressure);
-//  const uint8_t grip_min_absolute_pressure = static_cast<uint8_t>(std::clamp(
-//      std::round(grip_min_vacuum_pressure_ + kAtmosphericPressure), kMinAbsolutePressure, kMaxAbsolutePressure));
-//  const auto timeout = static_cast<uint8_t>(
-//      std::chrono::duration_cast<std::chrono::duration<int, std::ratio<1, 10>>>(
-//          std::clamp(release_timeout_, std::chrono::milliseconds(kMinTimeout), std::chrono::milliseconds(kMaxTimeout)))
-//          .count());
-//
-//  std::vector<uint8_t> request = {
-//    slave_address_,
-//    static_cast<uint8_t>(default_driver_utils::FunctionCode::PresetMultipleRegisters),
-//    data_utils::get_msb(kActionRequestRegisterAddress),
-//    data_utils::get_lsb(kActionRequestRegisterAddress),
-//    0x00,                       // Number of registers to write MSB.
-//    0x03,                       // Number of registers to write LSB.
-//    0x06,                       // Number of bytes to write.
-//    action_request_register,    // Action register.
-//    0x00,                       // Reserved.
-//    0x00,                       // Reserved.
-//    release_absolute_pressure,  // Grip max absolute pressure.
-//    timeout,                    // Gripper timeout (hundredths of a second).
-//    grip_min_absolute_pressure  // Min absolute pressure
-//  };
-//
-//  auto crc = crc_utils::compute_crc(request);
-//  request.push_back(data_utils::get_msb(crc));
-//  request.push_back(data_utils::get_lsb(crc));
-//
-//  auto response = send(request, kReleaseResponseSize);
-//  if (response.empty())
-//  {
-//    throw DriverException{ "Failed to release." };
-//  }
-//}
-//
-//void DefaultDriver::set_slave_address(uint8_t slave_address)
-//{
-//  slave_address_ = slave_address;
-//}
-//
-//void DefaultDriver::set_mode(GripperMode gripper_mode)
-//{
-//  if (gripper_mode == GripperMode::Unknown)
-//  {
-//    RCLCPP_ERROR(kLogger, "Invalid gripper mode: %s",
-//                 default_driver_utils::gripper_mode_to_string(gripper_mode).c_str());
-//    return;
-//  }
-//  grasping_mode_ = gripper_mode;
-//}
-//
-//GripperStatus DefaultDriver::get_status()
-//{
-//  std::vector<uint8_t> request = {
-//    slave_address_,
-//    static_cast<uint8_t>(default_driver_utils::FunctionCode::ReadInputRegisters),
-//    data_utils::get_msb(kGripperStatusRegister),
-//    data_utils::get_lsb(kGripperStatusRegister),
-//    0x00,  // Number of registers to read MSB
-//    0x03   // Number of registers to read LSB
-//  };
-//  auto crc = crc_utils::compute_crc(request);
-//  request.push_back(data_utils::get_msb(crc));
-//  request.push_back(data_utils::get_lsb(crc));
-//
-//  auto response = send(request, kGetStatusResponseSize);
-//  if (response.empty())
-//  {
-//    throw DriverException{ "Failed to read the status." };
-//  }
-//
-//  // The content of the requested registers starts from byte 3.
-//
-//  GripperStatus status;
-//  status.gripper_activation_action = default_driver_utils::get_gripper_activation_action(response[3]);
-//  status.gripper_mode = default_driver_utils::get_gripper_mode(response[3]);
-//  status.gripper_regulate_action = default_driver_utils::get_gripper_regulate_action(response[3]);
-//  status.gripper_activation_status = default_driver_utils::get_gripper_activation_status(response[3]);
-//  status.object_detection_status = default_driver_utils::get_object_detection_status(response[3]);
-//  status.actuator_status = default_driver_utils::get_actuator_status(response[4]);
-//  status.gripper_fault_status = default_driver_utils::get_gripper_fault_status(response[5]);
-//
-//  // The requested pressure level in kPa:
-//  status.max_vacuum_pressure = static_cast<float>(response[6]) - kAtmosphericPressure;
-//
-//  // The actual pressure measured kPa:
-//  status.actual_vacuum_pressure = static_cast<float>(response[7]) - kAtmosphericPressure;
-//
-//  return status;
-//}
+FullGripperStatus DefaultDriver::get_full_status()
+{
+  std::vector<uint8_t> request = {
+    slave_address_,
+    static_cast<uint8_t>(default_driver_utils::FunctionCode::ReadInputRegisters),
+    data_utils::get_msb(kGripperStatusRegister),
+    data_utils::get_lsb(kGripperStatusRegister),
+    data_utils::get_msb(kGetFullStatusRegisterCount),
+    data_utils::get_lsb(kGetFullStatusRegisterCount),
+  };
+  auto crc = crc_utils::compute_crc(request);
+  request.push_back(data_utils::get_msb(crc));
+  request.push_back(data_utils::get_lsb(crc));
+
+  auto response = send(request, kResponseSizeHeaderSize + kGetFullStatusRegisterCount);
+  if (response.empty())
+  {
+    throw DriverException{ "Failed to read the status." };
+  }
+
+  // The content of the requested registers starts from byte 3.
+  // byte 3 contains the gripper status, which includes gACT through gSTA.
+  // byte 4 contains the object status, which is gDTA through gDTS.
+  // byte 5 contains the fault status (gFLT).
+  FullGripperStatus status;
+  status.activation_status = default_driver_utils::get_gripper_activation_status(response[3]);
+  status.mode_status = default_driver_utils::get_grasping_mode(response[3]);
+  status.go_to_status = default_driver_utils::get_go_to_status(response[3]);
+  status.gripper_status = default_driver_utils::get_gripper_status(response[3]);
+  status.motion_status = default_driver_utils::get_motion_status(response[3]);
+  status.finger_a_object_detection_status = default_driver_utils::get_finger_a_object_status(response[4]);
+  status.finger_b_object_detection_status = default_driver_utils::get_finger_b_object_status(response[4]);
+  status.finger_c_object_detection_status = default_driver_utils::get_finger_c_object_status(response[4]);
+  status.scissor_object_detection_status = default_driver_utils::get_scissor_object_status(response[4]);
+  status.fault_status = default_driver_utils::get_gripper_fault_status(response[5]);
+  status.finger_a_position_cmd_echo = response[6];
+  status.finger_a_position = response[7];
+  status.finger_a_current = response[8];
+  status.finger_b_position_cmd_echo = response[9];
+  status.finger_b_position = response[10];
+  status.finger_b_current = response[11];
+  status.finger_c_position_cmd_echo = response[12];
+  status.finger_c_position = response[13];
+  status.finger_c_current = response[14];
+  status.scissor_position_cmd_echo = response[15];
+  status.scissor_position = response[16];
+  status.scissor_current = response[17];
+
+  return status;
+}
+
+void write(IndependantControlCommand const &cmd) {
+  // set all the position, speed, and force registers, as well as the GO_TO bits
+  // the ACT bit must also still be set
+}
+
 }  // namespace robotiq_3f_driver

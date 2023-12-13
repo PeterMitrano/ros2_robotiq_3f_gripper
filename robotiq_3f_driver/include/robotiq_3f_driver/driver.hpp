@@ -128,6 +128,25 @@ struct FullGripperStatus
   ObjectDetectionStatus scissor_object_detection_status;
 };
 
+// We use this structure to hold our command interface values.
+// NOTE: should these be zero initialized or NaN initialized?
+struct IndependantControlCommand
+{
+  double finger_a_position;
+  double finger_b_position;
+  double finger_c_position;
+  double scissor_position;
+  double finger_a_velocity;
+  double finger_b_velocity;
+  double finger_c_velocity;
+  double scissor_velocity;
+  double finger_a_force;
+  double finger_b_force;
+  double finger_c_force;
+  double scissor_force;
+};
+
+
 /**
  * This is the interface of the driver to control the 3f Gripper.
  * The Driver interface can be easily mocked for testing or implemented to
@@ -157,6 +176,7 @@ public:
   virtual void deactivate() = 0;
 
   virtual FullGripperStatus get_full_status() = 0;
+  virtual void write(IndependantControlCommand  const &cmd) = 0;
 
   virtual void set_activate(uint8_t activate) = 0;  // akin to "initialization"
   virtual void set_grasping_mode(uint8_t grasping_mode) = 0;

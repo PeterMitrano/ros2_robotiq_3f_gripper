@@ -43,7 +43,7 @@ namespace robotiq_3f_driver::default_driver_utils
 /** These represent read and write actions. */
 enum class FunctionCode : uint8_t
 {
-  ReadInputRegisters = 0x03,
+  ReadInputRegisters = 0x03, // referred to as read "Holding" registers in the manual
   PresetSingleRegister = 0x06,
   PresetMultipleRegisters = 0x10, // 16 in decimal
   MasterReadWriteMultipleRegisters = 0x17, // 23 in decimal
@@ -58,8 +58,8 @@ void set_individual_control_mode(uint8_t& reg, const bool individual_control_mod
 void set_individual_scissor_control_mode(uint8_t& reg, const bool individual_scissor_control_mode);
 
 // getters
-GripperActivationAction get_gripper_activation_action(const uint8_t& reg);
-const std::string gripper_activation_action_to_string(const GripperActivationAction gripper_activation_action);
+GripperActivationStatus get_gripper_activation_status(const uint8_t& reg);
+const std::string gripper_activation_status_to_string(const GripperActivationStatus gripper_activation_status);
 
 GraspingMode get_grasping_mode(const uint8_t& reg);
 const std::string grasping_mode_to_string(const GraspingMode grasping_mode);

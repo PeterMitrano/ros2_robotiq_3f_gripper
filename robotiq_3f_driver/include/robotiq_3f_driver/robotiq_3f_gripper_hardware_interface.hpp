@@ -151,6 +151,5 @@ private:
 
   std::mutex state_mutex_;
   std::mutex cmd_mutex_;
-
 };
 }  // namespace robotiq_3f_driver

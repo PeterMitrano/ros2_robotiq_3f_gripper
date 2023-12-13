@@ -34,13 +34,15 @@
 namespace robotiq_3f_driver
 {
 
+// These structs give us a friendlier interface to the registers of the gripper.
 enum class GripperActivationAction
 {
   RESET,
   ACTIVE
 };
 // They are the same, but the names are clearer this way
-enum class GripperActivationStatus {
+enum class GripperActivationStatus
+{
   INACTIVE,
   ACTIVE
 };
@@ -65,7 +67,7 @@ enum class ActionStatus
   MOVING
 };
 
-enum class MotionStatus // gSTA
+enum class MotionStatus  // gSTA
 {
   IN_MOTION,
   STOPPED_ONE_OR_TWO_UNREACHED,
@@ -151,7 +153,6 @@ struct IndependantControlCommand
   double scissor_force;
 };
 
-
 /**
  * This is the interface of the driver to control the 3f Gripper.
  * The Driver interface can be easily mocked for testing or implemented to
@@ -181,14 +182,16 @@ public:
   virtual void deactivate() = 0;
 
   virtual FullGripperStatus get_full_status() = 0;
-  virtual void write(IndependantControlCommand  const &cmd) = 0;
 
-//  virtual void set_activate(uint8_t activate) = 0;  // akin to "initialization"
-//  virtual void set_grasping_mode(uint8_t grasping_mode) = 0;
-//  virtual void set_go_to(uint8_t go_to) = 0;
-//  virtual void set_auto_release(uint8_t auto_release) = 0;
-//  virtual void set_individual_finger_control(uint8_t individual_finger_control) = 0;
-//  virtual void set_individual_scissor_control(uint8_t individual_scissor_control) = 0;
+  virtual void write(IndependantControlCommand const& cmd) = 0;
+
+  // TODO: how to expose these individual functions? ROS services in the driver? or in a custom controller?
+  //  virtual void set_activate(uint8_t activate) = 0;  // akin to "initialization"
+  //  virtual void set_grasping_mode(uint8_t grasping_mode) = 0;
+  //  virtual void set_go_to(uint8_t go_to) = 0;
+  //  virtual void set_auto_release(uint8_t auto_release) = 0;
+  //  virtual void set_individual_finger_control(uint8_t individual_finger_control) = 0;
+  //  virtual void set_individual_scissor_control(uint8_t individual_scissor_control) = 0;
 };
 
 }  // namespace robotiq_3f_driver

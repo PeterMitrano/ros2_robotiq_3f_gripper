@@ -63,7 +63,7 @@ public:
 
   FullGripperStatus get_full_status() override;
 
-  void write(IndependantControlCommand  const &cmd) override;
+  void write(IndependantControlCommand const& cmd) override;
 
 private:
   /**

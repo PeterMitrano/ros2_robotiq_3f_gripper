@@ -73,7 +73,8 @@ FullGripperStatus FakeDriver::get_full_status()
   return status;
 }
 
-void FakeDriver::write(IndependantControlCommand  const &cmd) {
+void FakeDriver::write(IndependantControlCommand const& cmd)
+{
 }
 
 }  // namespace robotiq_3f_driver

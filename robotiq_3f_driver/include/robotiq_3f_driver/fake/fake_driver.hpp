@@ -52,7 +52,7 @@ public:
   void activate() override;
   void deactivate() override;
   FullGripperStatus get_full_status() override;
-  void write(IndependantControlCommand  const &cmd) override;
+  void write(IndependantControlCommand const& cmd) override;
 
 private:
   uint8_t slave_address_ = 0x00;

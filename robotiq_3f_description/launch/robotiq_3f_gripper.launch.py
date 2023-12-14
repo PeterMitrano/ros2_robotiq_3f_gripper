@@ -142,7 +142,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "description_file",
-            default_value="example.urdf.xacro",
+            default_value="robotiq_3f_gripper.xacro",
             description="URDF/XACRO description file for the robot.",
         ),
         DeclareLaunchArgument(

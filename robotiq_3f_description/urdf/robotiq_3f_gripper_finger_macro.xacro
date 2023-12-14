@@ -15,9 +15,6 @@ finger(i.e. finger_1, etc...).
                 <geometry>
                     <mesh filename="package://robotiq_3f_description/meshes/visual/link_0.dae"/>
                 </geometry>
-                <material name="gray">
-                    <color rgba="0.2 0.2 0.2 1"/>
-                </material>
             </visual>
             <collision>
                 <origin xyz="0.020 0 0" rpy="0 0 0"/>
@@ -40,7 +37,6 @@ finger(i.e. finger_1, etc...).
                 <geometry>
                     <mesh filename="package://robotiq_3f_description/meshes/visual/link_1.dae"/>
                 </geometry>
-                <material name="gray"/>
             </visual>
             <collision>
                 <origin xyz="0.050 -.028 0" rpy="0 0 -0.52"/>
@@ -57,7 +53,7 @@ finger(i.e. finger_1, etc...).
         </link>
         <link name="${prefix}link_2">
             <!--
-            NOTE: This link has an offset in the z-direction based on the models that were
+            NOTE This link has an offset in the z-direction based on the models that were
             used to generate grap-it poses.  With the offset below the model appears visually
             correct, but it is suspect.
             -->
@@ -66,7 +62,6 @@ finger(i.e. finger_1, etc...).
                 <geometry>
                     <mesh filename="package://robotiq_3f_description/meshes/visual/link_2.dae"/>
                 </geometry>
-                <material name="gray"/>
             </visual>
             <collision>
                 <origin xyz="0.039 0 0.0075" rpy="0 0 0"/>
@@ -87,7 +82,6 @@ finger(i.e. finger_1, etc...).
                 <geometry>
                     <mesh filename="package://robotiq_3f_description/meshes/visual/link_3.dae"/>
                 </geometry>
-                <material name="gray"/>
             </visual>
             <collision>
                 <origin xyz="0 0 0" rpy="0 0 0.52"/>

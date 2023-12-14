@@ -67,18 +67,10 @@ TEST(TestDefaultDriverFactory, create_with_default_parameters)
   testing::Mock::AllowLeak(driver.get());
 
   EXPECT_CALL(*driver, set_slave_address(0x9));
-  EXPECT_CALL(*driver, set_mode(GripperMode::AutomaticMode));
-  EXPECT_CALL(*driver, set_grip_max_vacuum_pressure(-100));
-  EXPECT_CALL(*driver, set_grip_min_vacuum_pressure(-10));
-  EXPECT_CALL(*driver, set_grip_timeout(std::chrono::milliseconds(500)));
-  EXPECT_CALL(*driver, set_release_timeout(std::chrono::milliseconds(500)));
   EXPECT_CALL(*driver, connect()).Times(0);
   EXPECT_CALL(*driver, disconnect()).Times(0);
   EXPECT_CALL(*driver, activate()).Times(0);
   EXPECT_CALL(*driver, deactivate()).Times(0);
-  EXPECT_CALL(*driver, grip()).Times(0);
-  EXPECT_CALL(*driver, release()).Times(0);
-  EXPECT_CALL(*driver, get_status()).Times(0);
 
   TestDriverFactory driver_factory{ std::move(driver) };
   auto created_driver = driver_factory.create(info);
@@ -92,11 +84,6 @@ TEST(TestDefaultDriverFactory, create_with_given_parameters)
   hardware_interface::HardwareInfo info;
 
   info.hardware_parameters.emplace("slave_address", "1");
-  info.hardware_parameters.emplace("mode", "AdvancedMode");
-  info.hardware_parameters.emplace("grip_max_vacuum_pressure", "-50");
-  info.hardware_parameters.emplace("grip_min_vacuum_pressure", "-10");
-  info.hardware_parameters.emplace("grip_timeout", "1.0");
-  info.hardware_parameters.emplace("release_timeout", "0.2");
 
   auto driver = std::make_unique<MockDriver>();
 
@@ -104,18 +91,10 @@ TEST(TestDefaultDriverFactory, create_with_given_parameters)
   testing::Mock::AllowLeak(driver.get());
 
   EXPECT_CALL(*driver, set_slave_address(0x1));
-  EXPECT_CALL(*driver, set_mode(GripperMode::AdvancedMode));
-  EXPECT_CALL(*driver, set_grip_max_vacuum_pressure(-50));
-  EXPECT_CALL(*driver, set_grip_min_vacuum_pressure(-10));
-  EXPECT_CALL(*driver, set_grip_timeout(std::chrono::milliseconds(1000)));
-  EXPECT_CALL(*driver, set_release_timeout(std::chrono::milliseconds(200)));
   EXPECT_CALL(*driver, connect()).Times(0);
   EXPECT_CALL(*driver, disconnect()).Times(0);
   EXPECT_CALL(*driver, activate()).Times(0);
   EXPECT_CALL(*driver, deactivate()).Times(0);
-  EXPECT_CALL(*driver, grip()).Times(0);
-  EXPECT_CALL(*driver, release()).Times(0);
-  EXPECT_CALL(*driver, get_status()).Times(0);
 
   TestDriverFactory driver_factory{ std::move(driver) };
   auto created_driver = driver_factory.create(info);

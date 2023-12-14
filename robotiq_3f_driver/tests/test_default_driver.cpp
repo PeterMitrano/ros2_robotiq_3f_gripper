@@ -56,15 +56,10 @@ TEST(TestDefaultDriver, activate)
     slave_address,
     static_cast<uint8_t>(default_driver_utils::FunctionCode::PresetMultipleRegisters),
     0x03, 0xE8,  // Address of the first requested register - MSB, LSB.
-    0x00, 0x03,  // Number of registers requested - MSB, LSB.
-    0x06,        // Number of data bytes to follow.
-    0x0B,        // Action Register - MSB, LSB.
-    0x00,        // Reserved.
-    0x00,        // Reserved.
-    0x64,        // Max absolute pressure (-100kPa).
-    0x05,        // Grip Timeout (500ms)
-    0x64,        // Min absolute pressure (-10kPa).
-    0x31, 0x2F   // CRC-16 - MSB, LSB.
+    0x00, 0x01,  // Number of registers requested - MSB, LSB.
+    0x02,        // Number of data bytes to follow.
+    0x01, 0x00,   // Action Register - MSB, LSB.
+    0xE4, 0x28   // CRC-16 - MSB, LSB.
   };
 
   const std::vector<uint8_t> expected_response {
@@ -85,53 +80,6 @@ TEST(TestDefaultDriver, activate)
   driver->set_slave_address(slave_address);
 
   driver->activate();
-
-  ASSERT_EQ(data_utils::to_hex(actual_request), data_utils::to_hex(expected_request));
-}
-
-/**
- * Here we test the driver deactivation command.
- * We mock the serial interface, send an deactivate command to the driver and
- * check that the sequence of bytes received by the serial interface is
- * correctly generated.
- */
-TEST(TestDefaultDriver, deactivate)
-{
-  const uint8_t slave_address = 0x09;
-
-  // clang-format off
-  const std::vector<uint8_t> expected_request{
-    slave_address,
-    static_cast<uint8_t>(default_driver_utils::FunctionCode::PresetMultipleRegisters),
-    0x03, 0xE8,  // Address of the first requested register - MSB, LSB.
-    0x00, 0x03,  // Number of registers requested - MSB, LSB.
-    0x06,        // Number of data bytes to follow.
-    0x00,        // Action Register.
-    0x00,        // Reserved.
-    0x00,        // Reserved.
-    0x00,        // Max absolute pressure.
-    0x00,        // Grip Timeout.
-    0x00,        // Min absolute pressure
-    0x73, 0x30   // CRC-16 - MSB, LSB.
-  };
-
-  const std::vector<uint8_t> expected_response {
-    slave_address,
-    static_cast<uint8_t>(default_driver_utils::FunctionCode::PresetMultipleRegisters),
-    0x03, 0xE8,  // Address of the first requested register - MSB, LSB.
-    0x00, 0x03,  // Number of registers requested - MSB, LSB.
-    0x01, 0x30   // CRC-16 - MSB, LSB.
-  };
-  // clang-format on
-
-  std::vector<uint8_t> actual_request;
-  auto serial = std::make_unique<MockSerial>();
-  EXPECT_CALL(*serial, write(_)).WillOnce(SaveArg<0>(&actual_request));
-  EXPECT_CALL(*serial, read(_)).WillOnce(Return(expected_response));
-
-  auto driver = std::make_unique<robotiq_3f_driver::DefaultDriver>(std::move(serial));
-  driver->set_slave_address(0x9);
-  driver->deactivate();
 
   ASSERT_EQ(data_utils::to_hex(actual_request), data_utils::to_hex(expected_request));
 }

@@ -61,12 +61,15 @@ using robotiq_3f_driver::hardware_interface_utils::is_true;
 Robotiq3fGripperHardwareInterface::Robotiq3fGripperHardwareInterface()
 {
   driver_factory_ = std::make_unique<DefaultDriverFactory>();
+
+  rclcpp::on_shutdown([this] { stop(); });
 }
 
 // This constructor is use for testing only.
 Robotiq3fGripperHardwareInterface::Robotiq3fGripperHardwareInterface(std::unique_ptr<DriverFactory> driver_factory)
   : driver_factory_{ std::move(driver_factory) }
 {
+  rclcpp::on_shutdown([this] { stop(); });
 }
 
 Robotiq3fGripperHardwareInterface::~Robotiq3fGripperHardwareInterface()
@@ -135,22 +138,17 @@ std::vector<hardware_interface::StateInterface> Robotiq3fGripperHardwareInterfac
   std::vector<hardware_interface::StateInterface> state_interfaces;
   try
   {
-    state_interfaces.emplace_back("finger_a_cmd_echo", hardware_interface::HW_IF_POSITION,
-                                  &status_.finger_a_position_cmd_echo);
-    state_interfaces.emplace_back("finger_b_cmd_echo", hardware_interface::HW_IF_POSITION,
-                                  &status_.finger_b_position_cmd_echo);
-    state_interfaces.emplace_back("finger_c_cmd_echo", hardware_interface::HW_IF_POSITION,
-                                  &status_.finger_c_position_cmd_echo);
-    state_interfaces.emplace_back("scissor_cmd_echo", hardware_interface::HW_IF_POSITION,
-                                  &status_.scissor_position_cmd_echo);
-    state_interfaces.emplace_back("finger_a", hardware_interface::HW_IF_POSITION, &status_.finger_a_position);
-    state_interfaces.emplace_back("finger_b", hardware_interface::HW_IF_POSITION, &status_.finger_b_position);
-    state_interfaces.emplace_back("finger_c", hardware_interface::HW_IF_POSITION, &status_.finger_c_position);
-    state_interfaces.emplace_back("scissor", hardware_interface::HW_IF_POSITION, &status_.scissor_position);
-    state_interfaces.emplace_back("finger_a_current", hardware_interface::HW_IF_EFFORT, &status_.finger_a_current);
-    state_interfaces.emplace_back("finger_b_current", hardware_interface::HW_IF_EFFORT, &status_.finger_b_current);
-    state_interfaces.emplace_back("finger_c_current", hardware_interface::HW_IF_EFFORT, &status_.finger_c_current);
-    state_interfaces.emplace_back("scissor_current", hardware_interface::HW_IF_EFFORT, &status_.scissor_current);
+    state_interfaces.emplace_back("finger_1_joint_1", hardware_interface::HW_IF_POSITION, &status_.finger_1_joint_1_position);
+    state_interfaces.emplace_back("finger_1_joint_2", hardware_interface::HW_IF_POSITION, &status_.finger_1_joint_2_position);
+    state_interfaces.emplace_back("finger_1_joint_3", hardware_interface::HW_IF_POSITION, &status_.finger_1_joint_3_position);
+    state_interfaces.emplace_back("finger_2_joint_1", hardware_interface::HW_IF_POSITION, &status_.finger_2_joint_1_position);
+    state_interfaces.emplace_back("finger_2_joint_2", hardware_interface::HW_IF_POSITION, &status_.finger_2_joint_2_position);
+    state_interfaces.emplace_back("finger_2_joint_3", hardware_interface::HW_IF_POSITION, &status_.finger_2_joint_3_position);
+    state_interfaces.emplace_back("finger_3_joint_1", hardware_interface::HW_IF_POSITION, &status_.finger_3_joint_1_position);
+    state_interfaces.emplace_back("finger_3_joint_2", hardware_interface::HW_IF_POSITION, &status_.finger_3_joint_2_position);
+    state_interfaces.emplace_back("finger_3_joint_3", hardware_interface::HW_IF_POSITION, &status_.finger_3_joint_3_position);
+    state_interfaces.emplace_back("palm_finger_1_joint", hardware_interface::HW_IF_POSITION, &status_.palm_finger_1_joint_position);
+    state_interfaces.emplace_back("palm_finger_2_joint", hardware_interface::HW_IF_POSITION, &status_.palm_finger_2_joint_position);
 
     // TODO: how do we publish the object detection status? It's not a double. So maybe create a message type and publish that?
   }
@@ -217,14 +215,9 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 Robotiq3fGripperHardwareInterface::on_deactivate([[maybe_unused]] const rclcpp_lifecycle::State& previous_state)
 {
   RCLCPP_DEBUG(kLogger, "on_deactivate");
-  communication_thread_is_running_.store(false);
-  if (communication_thread_.joinable())
-  {
-    communication_thread_.join();
-  }
   try
   {
-    driver_->deactivate();
+    stop();
   }
   catch (const std::exception& e)
   {
@@ -233,6 +226,16 @@ Robotiq3fGripperHardwareInterface::on_deactivate([[maybe_unused]] const rclcpp_l
   }
   RCLCPP_INFO(kLogger, "Robotiq 3f Gripper successfully deactivated!");
   return hardware_interface::CallbackReturn::SUCCESS;
+}
+
+void Robotiq3fGripperHardwareInterface::stop() {
+  RCLCPP_DEBUG(kLogger, "stop");
+  communication_thread_is_running_.store(false);
+  if (communication_thread_.joinable())
+  {
+    communication_thread_.join();
+  }
+  driver_->deactivate();
 }
 
 hardware_interface::return_type Robotiq3fGripperHardwareInterface::read([[maybe_unused]] const rclcpp::Time& time,

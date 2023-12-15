@@ -80,27 +80,27 @@ def launch_setup(context, *args, **kwargs):
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[
-            {"robot_description": robot_description_content},
             controllers_config_file,
         ],
+        remappings=[("~/robot_description", "/robot_description")],
         output={
             "stdout": "screen",
             "stderr": "screen",
         },
     )
 
-    # This is a controller for the Robotiq Epick gripper.
-    epick_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["epick_gripper_action_controller", "-c", "/controller_manager"],
-    )
-
-    epick_status_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["epick_status_publisher_controller", "-c", "/controller_manager"],
-    )
+    # Controllers
+    # controller_spawner = Node(
+    #     package="controller_manager",
+    #     executable="spawner",
+    #     arguments=["epick_gripper_action_controller", "-c", "/controller_manager"],
+    # )
+    #
+    # status_controller_spawner = Node(
+    #     package="controller_manager",
+    #     executable="spawner",
+    #     arguments=["epick_status_publisher_controller", "-c", "/controller_manager"],
+    # )
 
     # robot_state_publisher uses the URDF specified by the parameter robot_description
     # and the joint positions from the topic /joint_states to calculate the forward
@@ -115,8 +115,8 @@ def launch_setup(context, *args, **kwargs):
 
     nodes_to_start = [
         controller_manager,
-        epick_controller_spawner,
-        epick_status_controller_spawner,
+        # controller_spawner,
+        # status_controller_spawner,
         robot_state_publisher_node,
     ]
     return nodes_to_start
@@ -137,7 +137,7 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             "description_package",
-            default_value="epick_description",
+            default_value="robotiq_3f_description",
             description="Package containing all robot configuration files.",
         ),
         DeclareLaunchArgument(

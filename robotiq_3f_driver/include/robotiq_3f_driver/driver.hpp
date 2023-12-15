@@ -129,28 +129,47 @@ struct FullGripperStatus
   double scissor_position_cmd_echo;
   double scissor_position;
   double scissor_current;
+
+  // The robot is made up of many joints per finger, some of which are under-actuated. So the state
+  // has all the joints, but the command only has one.
+  double finger_1_joint_1_position;
+  double finger_1_joint_2_position;
+  double finger_1_joint_3_position;
+  double finger_2_joint_1_position;
+  double finger_2_joint_2_position;
+  double finger_2_joint_3_position;
+  double finger_3_joint_1_position;
+  double finger_3_joint_2_position;
+  double finger_3_joint_3_position;
+  double palm_finger_1_joint_position;
+  double palm_finger_2_joint_position;
+
+  // Object detection status
   ObjectDetectionStatus finger_a_object_detection_status;
   ObjectDetectionStatus finger_b_object_detection_status;
   ObjectDetectionStatus finger_c_object_detection_status;
   ObjectDetectionStatus scissor_object_detection_status;
 };
 
+constexpr auto kDefaultForce = 0.5;
+constexpr auto kDefaultSpeed = 1.0;
+
 // We use this structure to hold our command interface values.
 // NOTE: should these be zero initialized or NaN initialized?
 struct IndependentControlCommand
 {
-  double finger_a_position;
-  double finger_b_position;
-  double finger_c_position;
-  double scissor_position;
-  double finger_a_velocity;
-  double finger_b_velocity;
-  double finger_c_velocity;
-  double scissor_velocity;
-  double finger_a_force;
-  double finger_b_force;
-  double finger_c_force;
-  double scissor_force;
+  double finger_a_position = 0;
+  double finger_b_position = 0;
+  double finger_c_position = 0;
+  double scissor_position = 0;
+  double finger_a_velocity = kDefaultSpeed;
+  double finger_b_velocity = kDefaultSpeed;
+  double finger_c_velocity = kDefaultSpeed;
+  double scissor_velocity = kDefaultSpeed;
+  double finger_a_force = kDefaultForce;
+  double finger_b_force = kDefaultForce;
+  double finger_c_force = kDefaultForce;
+  double scissor_force = kDefaultForce;
 };
 
 /**

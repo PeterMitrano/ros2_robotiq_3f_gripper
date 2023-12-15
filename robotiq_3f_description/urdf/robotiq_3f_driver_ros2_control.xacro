@@ -27,27 +27,73 @@
 
             </hardware>
 
-            <joint name="finger_a">
-                <command_interface name="position"/>
+            <joint name="finger_1_joint_1">
                 <state_interface name="position"/>
-                <state_interface name="velocity"/>
-                <state_interface name="effort"/> <!-- current -->
+                <!-- NOTE should we also have position and velocity interfaces? -->
             </joint>
 
-            <joint name="finger_b">
-                <command_interface name="position"/>
+            <joint name="finger_1_joint_2">
                 <state_interface name="position"/>
-                <state_interface name="velocity"/>
-                <state_interface name="effort"/> <!-- current -->
             </joint>
 
-            <joint name="finger_c">
-                <command_interface name="position"/>
+            <joint name="finger_1_joint_3">
                 <state_interface name="position"/>
-                <state_interface name="velocity"/>
-                <state_interface name="effort"/> <!-- current -->
             </joint>
 
+            <joint name="finger_2_joint_1">
+                <state_interface name="position"/>
+            </joint>
+
+            <joint name="finger_2_joint_2">
+                <state_interface name="position"/>
+            </joint>
+
+            <joint name="finger_2_joint_3">
+                <state_interface name="position"/>
+            </joint>
+
+            <joint name="finger_3_joint_1">
+                <state_interface name="position"/>
+            </joint>
+
+            <joint name="finger_3_joint_2">
+                <state_interface name="position"/>
+            </joint>
+
+            <joint name="finger_3_joint_3">
+                <state_interface name="position"/>
+            </joint>
+
+            <joint name="palm_finger_1_joint">
+                <state_interface name="position"/>
+            </joint>
+
+            <joint name="palm_finger_2_joint">
+                <state_interface name="position"/>
+            </joint>
+
+            <!-- since the robotiq 3f is underactuated, we use transmissions to defined how the motors
+                    are connected to the joints. -->
+            <transmission name="individual_control_transmission">
+                <!-- TODO which package should this live in? -->
+                <plugin>robotiq_3f_driver/IndividualControlTransmission</plugin>
+                <!-- TODO I wish I didn't have to list these here, it's duplicated in the plugin -->
+                <actuator name="finger_a_actuator" role="finger_a_actuator"/>
+                <actuator name="finger_b_actuator" role="finger_b_actuator"/>
+                <actuator name="finger_c_actuator" role="finger_c_actuator"/>
+                <actuator name="scissor_actuator" role="scissor_actuator"/>
+                <joint name="finger_1_joint_1" role="finger_1_joint_1"/>
+                <joint name="finger_1_joint_2" role="finger_1_joint_2"/>
+                <joint name="finger_1_joint_3" role="finger_1_joint_3"/>
+                <joint name="finger_2_joint_1" role="finger_2_joint_1"/>
+                <joint name="finger_2_joint_2" role="finger_2_joint_2"/>
+                <joint name="finger_2_joint_3" role="finger_2_joint_3"/>
+                <joint name="finger_3_joint_1" role="finger_3_joint_1"/>
+                <joint name="finger_3_joint_2" role="finger_3_joint_2"/>
+                <joint name="finger_3_joint_3" role="finger_3_joint_3"/>
+                <joint name="palm_finger_1_joint" role="palm_finger_1_joint"/>
+                <joint name="palm_finger_2_joint" role="palm_finger_2_joint"/>
+            </transmission>
         </ros2_control>
 
     </xacro:macro>

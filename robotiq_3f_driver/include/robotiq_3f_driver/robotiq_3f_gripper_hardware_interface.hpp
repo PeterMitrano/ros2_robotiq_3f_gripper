@@ -133,6 +133,9 @@ public:
   hardware_interface::return_type write(const rclcpp::Time& time, const rclcpp::Duration& period) override;
 
 private:
+
+  void stop();
+
   // Interface to interact with the hardware using the serial port.
   std::unique_ptr<Driver> driver_;
 

@@ -27,9 +27,9 @@
 
             </hardware>
 
+            <!-- NOTE should we also have position and velocity interfaces? -->
             <joint name="finger_1_joint_1">
                 <state_interface name="position"/>
-                <!-- NOTE should we also have position and velocity interfaces? -->
             </joint>
 
             <joint name="finger_1_joint_2">
@@ -93,6 +93,7 @@
                 <joint name="finger_3_joint_3" role="finger_3_joint_3"/>
                 <joint name="palm_finger_1_joint" role="palm_finger_1_joint"/>
                 <joint name="palm_finger_2_joint" role="palm_finger_2_joint"/>
+
             </transmission>
         </ros2_control>
 

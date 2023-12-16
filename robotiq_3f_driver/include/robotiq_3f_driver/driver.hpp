@@ -130,20 +130,6 @@ struct FullGripperStatus
   double scissor_position;
   double scissor_current;
 
-  // The robot is made up of many joints per finger, some of which are under-actuated. So the state
-  // has all the joints, but the command only has one.
-  double finger_1_joint_1_position;
-  double finger_1_joint_2_position;
-  double finger_1_joint_3_position;
-  double finger_2_joint_1_position;
-  double finger_2_joint_2_position;
-  double finger_2_joint_3_position;
-  double finger_3_joint_1_position;
-  double finger_3_joint_2_position;
-  double finger_3_joint_3_position;
-  double palm_finger_1_joint_position;
-  double palm_finger_2_joint_position;
-
   // Object detection status
   ObjectDetectionStatus finger_a_object_detection_status;
   ObjectDetectionStatus finger_b_object_detection_status;

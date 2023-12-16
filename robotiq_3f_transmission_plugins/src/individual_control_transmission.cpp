@@ -3,6 +3,13 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/logging.hpp>
 
+const auto kLogger = rclcpp::get_logger("Robotiq3fGripperHardwareInterface");
+
+double double_to_uint8(double value)
+{
+  return value * 255.0;
+};
+
 namespace robotiq_3f_transmission_plugins
 {
 
@@ -11,7 +18,9 @@ void IndividualControlTransmission::configure(const std::vector<transmission_int
 {
   if (joint_handles.size() != num_joints())
   {
-    throw std::runtime_error("No joint handles were passed in");
+    std::string const msg =
+        "Got " + std::to_string(joint_handles.size()) + " joint handles, expected " + std::to_string(num_joints());
+    throw std::runtime_error(msg);
   }
 
   if (actuator_handles.size() != num_actuators())
@@ -22,6 +31,16 @@ void IndividualControlTransmission::configure(const std::vector<transmission_int
   }
 
   // FIXME: this is hard coded based on XML order -- can I just delete the XML and construct the Handles here?
+  RCLCPP_INFO_STREAM(kLogger, "Actuators: " << actuator_handles.size() << " Joints: " << joint_handles.size());
+  for (auto const& actuator : actuator_handles)
+  {
+    RCLCPP_INFO_STREAM(kLogger, "Actuator: " << actuator.get_name());
+  }
+  for (auto const& joint : joint_handles)
+  {
+    RCLCPP_INFO_STREAM(kLogger, "Joint: " << joint.get_name());
+  }
+
   finger_a_actuator_ = std::make_unique<transmission_interface::ActuatorHandle>(actuator_handles[0]);
   finger_b_actuator_ = std::make_unique<transmission_interface::ActuatorHandle>(actuator_handles[1]);
   finger_c_actuator_ = std::make_unique<transmission_interface::ActuatorHandle>(actuator_handles[2]);
@@ -62,10 +81,12 @@ void IndividualControlTransmission::actuator_to_joint()
    *   m_2 = theta_2_max / 100
    */
 
-  auto const finger_a_pos = finger_a_actuator_->get_value();
-  auto const finger_b_pos = finger_b_actuator_->get_value();
-  auto const finger_c_pos = finger_c_actuator_->get_value();
-  auto const scissor_pos = scissor_actuator_->get_value();
+  // the actuators get their values from the Status function of the driver, which has to use doubles (0-1)
+  // so we convert them to 0-255 here, which is what the kinematics equations use.
+  auto const finger_a_pos = double_to_uint8(finger_a_actuator_->get_value());
+  auto const finger_b_pos = double_to_uint8(finger_b_actuator_->get_value());
+  auto const finger_c_pos = double_to_uint8(finger_c_actuator_->get_value());
+  auto const scissor_pos = double_to_uint8(scissor_actuator_->get_value());
 
   // Copied from URDF :(
   auto const theta_1_lower = 0.0495;
@@ -74,10 +95,8 @@ void IndividualControlTransmission::actuator_to_joint()
   auto const theta_2_upper = 1.5708;
   auto const theta_3_lower = -1.2217;
   auto const theta_3_upper = -0.0523;
-  auto const palm_finger_1_lower = -0.1784;
-  auto const palm_finger_1_upper = 0.192;
-  auto const palm_finger_2_lower = -0.192;
-  auto const palm_finger_2_upper = 0.1784;
+  auto const palm_finger_lower = -0.192;
+  auto const palm_finger_upper = 0.1784;
 
   auto const m_1 = theta_1_upper / 140.0;
   auto const m_2 = theta_2_upper / 100.0;
@@ -106,8 +125,7 @@ void IndividualControlTransmission::actuator_to_joint()
   auto const finger_c_thetas = get_finger_thetas(finger_c_pos);
 
   // Scissor
-  auto const palm_finger_1 = scissor_pos / 255.0 * (palm_finger_1_upper - palm_finger_1_lower) + palm_finger_1_lower;
-  auto const palm_finger_2 = scissor_pos / 255.0 * (palm_finger_2_upper - palm_finger_2_lower) + palm_finger_2_lower;
+  auto const palm_finger = scissor_pos / 255.0 * (palm_finger_upper - palm_finger_lower) + palm_finger_lower;
 
   finger_1_joint_1_->set_value(finger_a_thetas[0]);
   finger_1_joint_2_->set_value(finger_a_thetas[1]);
@@ -118,14 +136,14 @@ void IndividualControlTransmission::actuator_to_joint()
   finger_3_joint_1_->set_value(finger_c_thetas[0]);
   finger_3_joint_2_->set_value(finger_c_thetas[1]);
   finger_3_joint_3_->set_value(finger_c_thetas[2]);
-  palm_finger_1_joint_->set_value(palm_finger_1);
-  palm_finger_2_joint_->set_value(palm_finger_2);
+  palm_finger_1_joint_->set_value(-palm_finger);
+  palm_finger_2_joint_->set_value(palm_finger);
 };
 
-void IndividualControlTransmission::joint_to_actuator(){
-    // Because the robot is under-actuated, this is ill-defined!
-  RCLCPP_WARN(rclcpp::get_logger("IndividualControlTransmission"),
-              "Joint to actuator conversion is ill-defined for the Robotiq 3F gripper");
+void IndividualControlTransmission::joint_to_actuator()
+{
+  // Because the robot is under-actuated, this is ill-defined!
+  RCLCPP_ERROR(kLogger, "Joint to actuator conversion is ill-defined for the Robotiq 3F gripper");
 };
 
 std::size_t IndividualControlTransmission::num_actuators() const
@@ -136,6 +154,6 @@ std::size_t IndividualControlTransmission::num_actuators() const
 std::size_t IndividualControlTransmission::num_joints() const
 {
   return 11;
-};
+}
 
 }  // namespace robotiq_3f_transmission_plugins

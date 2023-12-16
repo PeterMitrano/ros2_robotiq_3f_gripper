@@ -11,10 +11,12 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>hardware_interface</depend>
+  <depend>transmission_interface</depend>
   <depend>lifecycle_msgs</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp_lifecycle</depend>
   <depend>serial</depend>
+  <depend>robotiq_3f_transmission_plugins</depend>
 
   <!-- Check code against style conventions using clang-format. -->
   <test_depend>ament_clang_format</test_depend>

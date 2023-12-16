@@ -10,6 +10,10 @@ controller_manager:
 
     robotiq_3f_gripper_position_action_controller:
       type: position_controllers/GripperActionController
+      joints:
+        - robotiq_3f_joint_1
+        - robotiq_3f_joint_2
+        - robotiq_3f_joint_3
 
     robotiq_3f_gripper_effort_action_controller:
       type: effort_controllers/GripperActionController

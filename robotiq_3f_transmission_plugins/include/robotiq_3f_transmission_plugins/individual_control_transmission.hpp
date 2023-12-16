@@ -48,6 +48,5 @@ private:
   std::unique_ptr<transmission_interface::JointHandle> palm_finger_1_joint_;
   std::unique_ptr<transmission_interface::JointHandle> palm_finger_2_joint_;
 
-
 };
 }  // namespace robotiq_3f_transmission_plugins

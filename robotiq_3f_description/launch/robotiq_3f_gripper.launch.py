@@ -1,4 +1,4 @@
-# Copyright (c) 2023 PickNik, Inc.
+# Copyright (c) 2023 Peter Mitrano
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -26,7 +26,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-"""Launch file to start the Epick gripper."""
+"""Launch file to start the Robotiq 3f gripper."""
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -90,17 +90,17 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Controllers
-    # controller_spawner = Node(
-    #     package="controller_manager",
-    #     executable="spawner",
-    #     arguments=["epick_gripper_action_controller", "-c", "/controller_manager"],
-    # )
-    #
-    # status_controller_spawner = Node(
-    #     package="controller_manager",
-    #     executable="spawner",
-    #     arguments=["epick_status_publisher_controller", "-c", "/controller_manager"],
-    # )
+    gripper_action_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["robotiq_3f_gripper_position_action_controller", "-c", "/controller_manager"],
+    )
+
+    status_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["robotiq_3f_status_publisher_controller", "-c", "/controller_manager"],
+    )
 
     # robot_state_publisher uses the URDF specified by the parameter robot_description
     # and the joint positions from the topic /joint_states to calculate the forward
@@ -115,8 +115,8 @@ def launch_setup(context, *args, **kwargs):
 
     nodes_to_start = [
         controller_manager,
-        # controller_spawner,
-        # status_controller_spawner,
+        # gripper_action_controller_spawner,
+        status_controller_spawner,
         robot_state_publisher_node,
     ]
     return nodes_to_start

@@ -34,6 +34,8 @@
 #include <memory>
 #include <vector>
 
+#include <transmission_interface/transmission.hpp>
+
 #include <robotiq_3f_driver/default_driver_utils.hpp>
 #include <robotiq_3f_driver/driver.hpp>
 #include <robotiq_3f_driver/driver_factory.hpp>
@@ -50,6 +52,28 @@
 
 namespace robotiq_3f_driver
 {
+
+struct ActuatorStates {
+  double finger_a;
+  double finger_b;
+  double finger_c;
+  double scissor;
+};
+
+struct JointStates
+{
+  double finger_1_joint_1;
+  double finger_1_joint_2;
+  double finger_1_joint_3;
+  double finger_2_joint_1;
+  double finger_2_joint_2;
+  double finger_2_joint_3;
+  double finger_3_joint_1;
+  double finger_3_joint_2;
+  double finger_3_joint_3;
+  double palm_finger_1_joint;
+  double palm_finger_2_joint;
+};
 
 class Robotiq3fGripperHardwareInterface : public hardware_interface::SystemInterface
 {
@@ -133,7 +157,6 @@ public:
   hardware_interface::return_type write(const rclcpp::Time& time, const rclcpp::Duration& period) override;
 
 private:
-
   void stop();
 
   // Interface to interact with the hardware using the serial port.
@@ -147,10 +170,14 @@ private:
   std::atomic<bool> communication_thread_is_running_;
   void background_task();
 
+  std::shared_ptr<transmission_interface::Transmission> transmission_;
+
+
   // These are the ones we bind to in the state and command interfaces.
   // They are protected by the mutexes, since we read/send_independent_control_command to them from the background thread.
   IndependentControlCommand cmd_;
-  FullGripperStatus status_;
+  JointStates state_;
+  ActuatorStates actuator_states_;
 
   std::mutex state_mutex_;
   std::mutex cmd_mutex_;

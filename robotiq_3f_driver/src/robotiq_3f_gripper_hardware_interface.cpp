@@ -34,9 +34,12 @@
 #include <thread>
 
 #include <robotiq_3f_driver/robotiq_3f_gripper_hardware_interface.hpp>
+#include <robotiq_3f_transmission_plugins/individual_control_transmission_loader.hpp>
 
 #include <robotiq_3f_driver/default_driver_factory.hpp>
 #include <robotiq_3f_driver/hardware_interface_utils.hpp>
+
+#include <transmission_interface/transmission_interface_exception.hpp>
 
 #include <pluginlib/class_list_macros.hpp>
 #include <rclcpp/logging.hpp>
@@ -96,6 +99,46 @@ Robotiq3fGripperHardwareInterface::on_init(const hardware_interface::HardwareInf
 
     driver_ = driver_factory_->create(info);
 
+    if (info_.transmissions.empty()) {
+      RCLCPP_ERROR_STREAM(kLogger, "No transmissions found in the robotiq_3f_gripper_hardware_interface." << " You need to list the IndividualControlTransmission ");
+      return CallbackReturn::ERROR;
+    }
+
+    robotiq_3f_transmission_plugins::IndividualControlTransmissionLoader transmission_loader;
+    transmission_ = transmission_loader.load(info_.transmissions[0]);
+
+    std::vector<transmission_interface::JointHandle> joint_handles{
+      { "finger_1_joint_1", hardware_interface::HW_IF_POSITION, &state_.finger_1_joint_1 },
+      { "finger_1_joint_2", hardware_interface::HW_IF_POSITION, &state_.finger_1_joint_2 },
+      { "finger_1_joint_3", hardware_interface::HW_IF_POSITION, &state_.finger_1_joint_3 },
+      { "finger_2_joint_1", hardware_interface::HW_IF_POSITION, &state_.finger_2_joint_1 },
+      { "finger_2_joint_2", hardware_interface::HW_IF_POSITION, &state_.finger_2_joint_2 },
+      { "finger_2_joint_3", hardware_interface::HW_IF_POSITION, &state_.finger_2_joint_3 },
+      { "finger_3_joint_1", hardware_interface::HW_IF_POSITION, &state_.finger_3_joint_1 },
+      { "finger_3_joint_2", hardware_interface::HW_IF_POSITION, &state_.finger_3_joint_2 },
+      { "finger_3_joint_3", hardware_interface::HW_IF_POSITION, &state_.finger_3_joint_3 },
+      { "palm_finger_1_joint", hardware_interface::HW_IF_POSITION, &state_.palm_finger_1_joint },
+      { "palm_finger_2_joint", hardware_interface::HW_IF_POSITION, &state_.palm_finger_2_joint },
+    };
+
+    std::vector<transmission_interface::ActuatorHandle> actuator_handles{
+      { "finger_a", hardware_interface::HW_IF_POSITION, &actuator_states_.finger_a },
+      { "finger_b", hardware_interface::HW_IF_POSITION, &actuator_states_.finger_b },
+      { "finger_c", hardware_interface::HW_IF_POSITION, &actuator_states_.finger_c },
+      { "scissor", hardware_interface::HW_IF_POSITION, &actuator_states_.scissor },
+    };
+
+    // Set up the transmission
+    try
+    {
+      transmission_->configure(joint_handles, actuator_handles);
+    }
+    catch (const transmission_interface::TransmissionInterfaceException& exc)
+    {
+      RCLCPP_FATAL_STREAM(kLogger, "Error while configuring transmission: " << exc.what());
+      return CallbackReturn::ERROR;
+    }
+
     return CallbackReturn::SUCCESS;
   }
   catch (const std::exception& e)
@@ -138,17 +181,19 @@ std::vector<hardware_interface::StateInterface> Robotiq3fGripperHardwareInterfac
   std::vector<hardware_interface::StateInterface> state_interfaces;
   try
   {
-    state_interfaces.emplace_back("finger_1_joint_1", hardware_interface::HW_IF_POSITION, &status_.finger_1_joint_1_position);
-    state_interfaces.emplace_back("finger_1_joint_2", hardware_interface::HW_IF_POSITION, &status_.finger_1_joint_2_position);
-    state_interfaces.emplace_back("finger_1_joint_3", hardware_interface::HW_IF_POSITION, &status_.finger_1_joint_3_position);
-    state_interfaces.emplace_back("finger_2_joint_1", hardware_interface::HW_IF_POSITION, &status_.finger_2_joint_1_position);
-    state_interfaces.emplace_back("finger_2_joint_2", hardware_interface::HW_IF_POSITION, &status_.finger_2_joint_2_position);
-    state_interfaces.emplace_back("finger_2_joint_3", hardware_interface::HW_IF_POSITION, &status_.finger_2_joint_3_position);
-    state_interfaces.emplace_back("finger_3_joint_1", hardware_interface::HW_IF_POSITION, &status_.finger_3_joint_1_position);
-    state_interfaces.emplace_back("finger_3_joint_2", hardware_interface::HW_IF_POSITION, &status_.finger_3_joint_2_position);
-    state_interfaces.emplace_back("finger_3_joint_3", hardware_interface::HW_IF_POSITION, &status_.finger_3_joint_3_position);
-    state_interfaces.emplace_back("palm_finger_1_joint", hardware_interface::HW_IF_POSITION, &status_.palm_finger_1_joint_position);
-    state_interfaces.emplace_back("palm_finger_2_joint", hardware_interface::HW_IF_POSITION, &status_.palm_finger_2_joint_position);
+    state_interfaces.emplace_back("finger_1_joint_1", hardware_interface::HW_IF_POSITION, &state_.finger_1_joint_1);
+    state_interfaces.emplace_back("finger_1_joint_2", hardware_interface::HW_IF_POSITION, &state_.finger_1_joint_2);
+    state_interfaces.emplace_back("finger_1_joint_3", hardware_interface::HW_IF_POSITION, &state_.finger_1_joint_3);
+    state_interfaces.emplace_back("finger_2_joint_1", hardware_interface::HW_IF_POSITION, &state_.finger_2_joint_1);
+    state_interfaces.emplace_back("finger_2_joint_2", hardware_interface::HW_IF_POSITION, &state_.finger_2_joint_2);
+    state_interfaces.emplace_back("finger_2_joint_3", hardware_interface::HW_IF_POSITION, &state_.finger_2_joint_3);
+    state_interfaces.emplace_back("finger_3_joint_1", hardware_interface::HW_IF_POSITION, &state_.finger_3_joint_1);
+    state_interfaces.emplace_back("finger_3_joint_2", hardware_interface::HW_IF_POSITION, &state_.finger_3_joint_2);
+    state_interfaces.emplace_back("finger_3_joint_3", hardware_interface::HW_IF_POSITION, &state_.finger_3_joint_3);
+    state_interfaces.emplace_back("palm_finger_1_joint", hardware_interface::HW_IF_POSITION,
+                                  &state_.palm_finger_1_joint);
+    state_interfaces.emplace_back("palm_finger_2_joint", hardware_interface::HW_IF_POSITION,
+                                  &state_.palm_finger_2_joint);
 
     // TODO: how do we publish the object detection status? It's not a double. So maybe create a message type and publish that?
   }
@@ -167,18 +212,18 @@ std::vector<hardware_interface::CommandInterface> Robotiq3fGripperHardwareInterf
   std::vector<hardware_interface::CommandInterface> command_interfaces;
   try
   {
-    command_interfaces.emplace_back("finger_a_position", hardware_interface::HW_IF_POSITION, &cmd_.finger_a_position);
-    command_interfaces.emplace_back("finger_b_position", hardware_interface::HW_IF_POSITION, &cmd_.finger_b_position);
-    command_interfaces.emplace_back("finger_c_position", hardware_interface::HW_IF_POSITION, &cmd_.finger_c_position);
-    command_interfaces.emplace_back("scissor_position", hardware_interface::HW_IF_POSITION, &cmd_.scissor_position);
-    command_interfaces.emplace_back("finger_a_velocity", hardware_interface::HW_IF_VELOCITY, &cmd_.finger_a_velocity);
-    command_interfaces.emplace_back("finger_b_velocity", hardware_interface::HW_IF_VELOCITY, &cmd_.finger_b_velocity);
-    command_interfaces.emplace_back("finger_c_velocity", hardware_interface::HW_IF_VELOCITY, &cmd_.finger_c_velocity);
-    command_interfaces.emplace_back("scissor_velocity", hardware_interface::HW_IF_VELOCITY, &cmd_.scissor_velocity);
-    command_interfaces.emplace_back("finger_a_force", hardware_interface::HW_IF_EFFORT, &cmd_.finger_a_force);
-    command_interfaces.emplace_back("finger_b_force", hardware_interface::HW_IF_EFFORT, &cmd_.finger_b_force);
-    command_interfaces.emplace_back("finger_c_force", hardware_interface::HW_IF_EFFORT, &cmd_.finger_c_force);
-    command_interfaces.emplace_back("scissor_force", hardware_interface::HW_IF_EFFORT, &cmd_.scissor_force);
+    //    command_interfaces.emplace_back("finger_a", hardware_interface::HW_IF_POSITION, &cmd_.finger_a_position);
+    //    command_interfaces.emplace_back("finger_b", hardware_interface::HW_IF_POSITION, &cmd_.finger_b_position);
+    //    command_interfaces.emplace_back("finger_c", hardware_interface::HW_IF_POSITION, &cmd_.finger_c_position);
+    //    command_interfaces.emplace_back("scissor", hardware_interface::HW_IF_POSITION, &cmd_.scissor_position);
+    //    command_interfaces.emplace_back("finger_a", hardware_interface::HW_IF_VELOCITY, &cmd_.finger_a_velocity);
+    //    command_interfaces.emplace_back("finger_b", hardware_interface::HW_IF_VELOCITY, &cmd_.finger_b_velocity);
+    //    command_interfaces.emplace_back("finger_c", hardware_interface::HW_IF_VELOCITY, &cmd_.finger_c_velocity);
+    //    command_interfaces.emplace_back("scissor", hardware_interface::HW_IF_VELOCITY, &cmd_.scissor_velocity);
+    //    command_interfaces.emplace_back("finger_a", hardware_interface::HW_IF_EFFORT, &cmd_.finger_a_force);
+    //    command_interfaces.emplace_back("finger_b", hardware_interface::HW_IF_EFFORT, &cmd_.finger_b_force);
+    //    command_interfaces.emplace_back("finger_c", hardware_interface::HW_IF_EFFORT, &cmd_.finger_c_force);
+    //    command_interfaces.emplace_back("scissor", hardware_interface::HW_IF_EFFORT, &cmd_.scissor_force);
   }
   catch (const std::exception& ex)
   {
@@ -228,7 +273,8 @@ Robotiq3fGripperHardwareInterface::on_deactivate([[maybe_unused]] const rclcpp_l
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-void Robotiq3fGripperHardwareInterface::stop() {
+void Robotiq3fGripperHardwareInterface::stop()
+{
   RCLCPP_DEBUG(kLogger, "stop");
   communication_thread_is_running_.store(false);
   if (communication_thread_.joinable())
@@ -266,7 +312,16 @@ void Robotiq3fGripperHardwareInterface::background_task()
       // make sure to lock the mutex while we're writing to the status_ struct.
       {
         std::lock_guard<std::mutex> lock(state_mutex_);
-        status_ = driver_->get_full_status();
+        auto const status = driver_->get_full_status();
+
+        // Update the actuators states (which are bound to the actuators in the transmissions)
+        actuator_states_.finger_a = status.finger_a_position;
+        actuator_states_.finger_b = status.finger_b_position;
+        actuator_states_.finger_c = status.finger_c_position;
+        actuator_states_.scissor = status.scissor_position;
+
+        // use the transmissions to convert the status to the state
+        transmission_->actuator_to_joint();
       }
 
       // Send the commands to the driver

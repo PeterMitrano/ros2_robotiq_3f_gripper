@@ -36,17 +36,17 @@ private:
   std::unique_ptr<transmission_interface::ActuatorHandle> finger_c_actuator_;
   std::unique_ptr<transmission_interface::ActuatorHandle> scissor_actuator_;
 
-  std::unique_ptr<transmission_interface::JointHandle> finger_1_joint_1_;
-  std::unique_ptr<transmission_interface::JointHandle> finger_1_joint_2_;
-  std::unique_ptr<transmission_interface::JointHandle> finger_1_joint_3_;
-  std::unique_ptr<transmission_interface::JointHandle> finger_2_joint_1_;
-  std::unique_ptr<transmission_interface::JointHandle> finger_2_joint_2_;
-  std::unique_ptr<transmission_interface::JointHandle> finger_2_joint_3_;
-  std::unique_ptr<transmission_interface::JointHandle> finger_3_joint_1_;
-  std::unique_ptr<transmission_interface::JointHandle> finger_3_joint_2_;
-  std::unique_ptr<transmission_interface::JointHandle> finger_3_joint_3_;
-  std::unique_ptr<transmission_interface::JointHandle> palm_finger_1_joint_;
-  std::unique_ptr<transmission_interface::JointHandle> palm_finger_2_joint_;
+  std::unique_ptr<transmission_interface::JointHandle> finger_c_joint_1_;
+  std::unique_ptr<transmission_interface::JointHandle> finger_c_joint_2_;
+  std::unique_ptr<transmission_interface::JointHandle> finger_c_joint_3_;
+  std::unique_ptr<transmission_interface::JointHandle> finger_b_joint_1_;
+  std::unique_ptr<transmission_interface::JointHandle> finger_b_joint_2_;
+  std::unique_ptr<transmission_interface::JointHandle> finger_b_joint_3_;
+  std::unique_ptr<transmission_interface::JointHandle> finger_a_joint_1_;
+  std::unique_ptr<transmission_interface::JointHandle> finger_a_joint_2_;
+  std::unique_ptr<transmission_interface::JointHandle> finger_a_joint_3_;
+  std::unique_ptr<transmission_interface::JointHandle> palm_finger_c_joint_;
+  std::unique_ptr<transmission_interface::JointHandle> palm_finger_b_joint_;
 
 };
 }  // namespace robotiq_3f_transmission_plugins

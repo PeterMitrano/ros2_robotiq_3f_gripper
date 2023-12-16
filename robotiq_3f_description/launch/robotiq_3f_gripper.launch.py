@@ -96,10 +96,16 @@ def launch_setup(context, *args, **kwargs):
         arguments=["individual_position_controller", "-c", "/controller_manager"],
     )
 
-    status_controller_spawner = Node(
+    joint_state_broadcaster = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["robotiq_3f_status_publisher_controller", "-c", "/controller_manager"],
+        arguments=["joint_state_broadcaster", "-c", "/controller_manager"],
+    )
+
+    actuator_state_broadcaster = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["actuator_state_broadcaster", "-c", "/controller_manager"],
     )
 
     # robot_state_publisher uses the URDF specified by the parameter robot_description
@@ -116,7 +122,8 @@ def launch_setup(context, *args, **kwargs):
     nodes_to_start = [
         controller_manager,
         controller_spawner,
-        status_controller_spawner,
+        joint_state_broadcaster,
+        actuator_state_broadcaster,
         robot_state_publisher_node,
     ]
     return nodes_to_start

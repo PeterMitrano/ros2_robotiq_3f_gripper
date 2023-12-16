@@ -31,14 +31,14 @@ void IndividualControlTransmission::configure(const std::vector<transmission_int
   }
 
   // FIXME: this is hard coded based on XML order -- can I just delete the XML and construct the Handles here?
-  RCLCPP_INFO_STREAM(kLogger, "Actuators: " << actuator_handles.size() << " Joints: " << joint_handles.size());
+  RCLCPP_DEBUG_STREAM(kLogger, "Actuators: " << actuator_handles.size() << " Joints: " << joint_handles.size());
   for (auto const& actuator : actuator_handles)
   {
-    RCLCPP_INFO_STREAM(kLogger, "Actuator: " << actuator.get_name());
+    RCLCPP_DEBUG_STREAM(kLogger, "Actuator: " << actuator.get_name());
   }
   for (auto const& joint : joint_handles)
   {
-    RCLCPP_INFO_STREAM(kLogger, "Joint: " << joint.get_name());
+    RCLCPP_DEBUG_STREAM(kLogger, "Joint: " << joint.get_name());
   }
 
   finger_a_actuator_ = std::make_unique<transmission_interface::ActuatorHandle>(actuator_handles[0]);
@@ -46,17 +46,17 @@ void IndividualControlTransmission::configure(const std::vector<transmission_int
   finger_c_actuator_ = std::make_unique<transmission_interface::ActuatorHandle>(actuator_handles[2]);
   scissor_actuator_ = std::make_unique<transmission_interface::ActuatorHandle>(actuator_handles[3]);
 
-  finger_1_joint_1_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[0]);
-  finger_1_joint_2_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[1]);
-  finger_1_joint_3_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[2]);
-  finger_2_joint_1_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[3]);
-  finger_2_joint_2_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[4]);
-  finger_2_joint_3_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[5]);
-  finger_3_joint_1_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[6]);
-  finger_3_joint_2_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[7]);
-  finger_3_joint_3_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[8]);
-  palm_finger_1_joint_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[9]);
-  palm_finger_2_joint_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[10]);
+  finger_a_joint_1_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[0]);
+  finger_a_joint_2_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[1]);
+  finger_a_joint_3_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[2]);
+  finger_b_joint_1_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[3]);
+  finger_b_joint_2_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[4]);
+  finger_b_joint_3_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[5]);
+  finger_c_joint_1_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[6]);
+  finger_c_joint_2_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[7]);
+  finger_c_joint_3_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[8]);
+  palm_finger_c_joint_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[9]);
+  palm_finger_b_joint_ = std::make_unique<transmission_interface::JointHandle>(joint_handles[10]);
 };
 
 void IndividualControlTransmission::actuator_to_joint()
@@ -127,17 +127,17 @@ void IndividualControlTransmission::actuator_to_joint()
   // Scissor
   auto const palm_finger = scissor_pos / 255.0 * (palm_finger_upper - palm_finger_lower) + palm_finger_lower;
 
-  finger_1_joint_1_->set_value(finger_a_thetas[0]);
-  finger_1_joint_2_->set_value(finger_a_thetas[1]);
-  finger_1_joint_3_->set_value(finger_a_thetas[2]);
-  finger_2_joint_1_->set_value(finger_b_thetas[0]);
-  finger_2_joint_2_->set_value(finger_b_thetas[1]);
-  finger_2_joint_3_->set_value(finger_b_thetas[2]);
-  finger_3_joint_1_->set_value(finger_c_thetas[0]);
-  finger_3_joint_2_->set_value(finger_c_thetas[1]);
-  finger_3_joint_3_->set_value(finger_c_thetas[2]);
-  palm_finger_1_joint_->set_value(-palm_finger);
-  palm_finger_2_joint_->set_value(palm_finger);
+  finger_a_joint_1_->set_value(finger_a_thetas[0]);
+  finger_a_joint_2_->set_value(finger_a_thetas[1]);
+  finger_a_joint_3_->set_value(finger_a_thetas[2]);
+  finger_b_joint_1_->set_value(finger_b_thetas[0]);
+  finger_b_joint_2_->set_value(finger_b_thetas[1]);
+  finger_b_joint_3_->set_value(finger_b_thetas[2]);
+  finger_c_joint_1_->set_value(finger_c_thetas[0]);
+  finger_c_joint_2_->set_value(finger_c_thetas[1]);
+  finger_c_joint_3_->set_value(finger_c_thetas[2]);
+  palm_finger_c_joint_->set_value(-palm_finger);
+  palm_finger_b_joint_->set_value(palm_finger);
 };
 
 void IndividualControlTransmission::joint_to_actuator()

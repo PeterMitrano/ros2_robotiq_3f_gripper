@@ -8,7 +8,10 @@ controller_manager:
     individual_position_controller:
       type: position_controllers/JointGroupPositionController
 
-    robotiq_3f_status_publisher_controller:
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    actuator_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
 
@@ -19,3 +22,51 @@ individual_position_controller:
       - finger_b
       - finger_c
       - scissor
+
+actuator_state_broadcaster:
+  ros__parameters:
+    joints:
+      - finger_a
+      - finger_b
+      - finger_c
+      - scissor
+      - finger_a
+      - finger_b
+      - finger_c
+      - scissor
+    interfaces:
+      - position
+      - position
+      - position
+      - position
+      - effort
+      - effort
+      - effort
+      - effort
+
+joint_state_broadcaster:
+  ros__parameters:
+    joints:
+      - finger_c_joint_1
+      - finger_c_joint_2
+      - finger_c_joint_3
+      - finger_b_joint_1
+      - finger_b_joint_2
+      - finger_b_joint_3
+      - finger_a_joint_1
+      - finger_a_joint_2
+      - finger_a_joint_3
+      - palm_finger_c_joint
+      - palm_finger_b_joint
+    interfaces:
+      - position
+      - position
+      - position
+      - position
+      - position
+      - position
+      - position
+      - position
+      - position
+      - position
+      - position

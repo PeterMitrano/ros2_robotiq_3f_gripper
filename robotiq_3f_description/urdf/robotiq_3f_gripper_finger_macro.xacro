@@ -2,8 +2,7 @@
 robotiq_3f_gripper_finder_articulated_macro(prefix)
 
 Creates an articulated robotiq_3f_gripper finder with the passed in prefix.  The
-prefix typcially includes the hand prefix and an identifier for the
-finger(i.e. finger_1, etc...).
+prefix typcially includes the hand prefix and an identifier for the finger
 
 -->
 <robot xmlns:xacro="http://ros.org/wiki/xacro">

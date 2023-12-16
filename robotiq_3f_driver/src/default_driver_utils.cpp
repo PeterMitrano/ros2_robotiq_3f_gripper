@@ -33,6 +33,7 @@
 #include <unordered_map>
 
 #include <robotiq_3f_driver/default_driver_utils.hpp>
+#include <rclcpp/logging.hpp>
 
 namespace robotiq_3f_driver::default_driver_utils
 {
@@ -56,11 +57,26 @@ void set_bits(uint8_t& reg, uint8_t bitmask, uint8_t bits)
 
 double uint8_to_double(const uint8_t& value)
 {
+  if (value > 255)
+  {
+    RCLCPP_WARN(rclcpp::get_logger("robotiq_3f_driver"), "Value %d is greater than 255, returning 1.0", value);
+    return 1.0;
+  }
   return static_cast<double>(value) / 255.0;
 }
 
 uint8_t double_to_uint8(const double& value)
 {
+  if (value < 0.0)
+  {
+    RCLCPP_WARN(rclcpp::get_logger("robotiq_3f_driver"), "Value %f is less than 0.0, returning 0", value);
+    return 0;
+  }
+  if (value > 1.0)
+  {
+    RCLCPP_WARN(rclcpp::get_logger("robotiq_3f_driver"), "Value %f is greater than 1.0, returning 255", value);
+    return 255;
+  }
   return static_cast<uint8_t>(value * 255.0);
 }
 

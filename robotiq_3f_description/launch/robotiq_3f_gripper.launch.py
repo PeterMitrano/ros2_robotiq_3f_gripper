@@ -90,10 +90,10 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Controllers
-    gripper_action_controller_spawner = Node(
+    controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["robotiq_3f_gripper_position_action_controller", "-c", "/controller_manager"],
+        arguments=["individual_position_controller", "-c", "/controller_manager"],
     )
 
     status_controller_spawner = Node(
@@ -115,7 +115,7 @@ def launch_setup(context, *args, **kwargs):
 
     nodes_to_start = [
         controller_manager,
-        # gripper_action_controller_spawner,
+        controller_spawner,
         status_controller_spawner,
         robot_state_publisher_node,
     ]

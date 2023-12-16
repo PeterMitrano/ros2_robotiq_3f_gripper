@@ -212,18 +212,10 @@ std::vector<hardware_interface::CommandInterface> Robotiq3fGripperHardwareInterf
   std::vector<hardware_interface::CommandInterface> command_interfaces;
   try
   {
-    //    command_interfaces.emplace_back("finger_a", hardware_interface::HW_IF_POSITION, &cmd_.finger_a_position);
-    //    command_interfaces.emplace_back("finger_b", hardware_interface::HW_IF_POSITION, &cmd_.finger_b_position);
-    //    command_interfaces.emplace_back("finger_c", hardware_interface::HW_IF_POSITION, &cmd_.finger_c_position);
-    //    command_interfaces.emplace_back("scissor", hardware_interface::HW_IF_POSITION, &cmd_.scissor_position);
-    //    command_interfaces.emplace_back("finger_a", hardware_interface::HW_IF_VELOCITY, &cmd_.finger_a_velocity);
-    //    command_interfaces.emplace_back("finger_b", hardware_interface::HW_IF_VELOCITY, &cmd_.finger_b_velocity);
-    //    command_interfaces.emplace_back("finger_c", hardware_interface::HW_IF_VELOCITY, &cmd_.finger_c_velocity);
-    //    command_interfaces.emplace_back("scissor", hardware_interface::HW_IF_VELOCITY, &cmd_.scissor_velocity);
-    //    command_interfaces.emplace_back("finger_a", hardware_interface::HW_IF_EFFORT, &cmd_.finger_a_force);
-    //    command_interfaces.emplace_back("finger_b", hardware_interface::HW_IF_EFFORT, &cmd_.finger_b_force);
-    //    command_interfaces.emplace_back("finger_c", hardware_interface::HW_IF_EFFORT, &cmd_.finger_c_force);
-    //    command_interfaces.emplace_back("scissor", hardware_interface::HW_IF_EFFORT, &cmd_.scissor_force);
+        command_interfaces.emplace_back("finger_a", hardware_interface::HW_IF_POSITION, &cmd_.finger_a_position);
+        command_interfaces.emplace_back("finger_b", hardware_interface::HW_IF_POSITION, &cmd_.finger_b_position);
+        command_interfaces.emplace_back("finger_c", hardware_interface::HW_IF_POSITION, &cmd_.finger_c_position);
+        command_interfaces.emplace_back("scissor", hardware_interface::HW_IF_POSITION, &cmd_.scissor_position);
   }
   catch (const std::exception& ex)
   {

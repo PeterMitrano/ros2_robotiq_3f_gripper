@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(robotiq_3f_msgs)
+project(robotiq_3f_interfaces)
 
 # This module provides installation directories as per the GNU coding standards.
 include(GNUInstallDirs)
@@ -12,9 +12,13 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
 
-rosidl_generate_interfaces(robotiq_3f_msgs
+rosidl_generate_interfaces(robotiq_3f_interfaces
   "msg/ObjectDetectionStatus.msg"
-  "msg/ObjectDetectionStatuses.msg"
+  "msg/Status.msg"
+  "msg/GraspingMode.msg"
+  "msg/SimpleControlCommand.msg"
+  "msg/IndependentControlCommand.msg"
+  "srv/ChangeGraspingMode.srv"
   DEPENDENCIES
     std_msgs
 )

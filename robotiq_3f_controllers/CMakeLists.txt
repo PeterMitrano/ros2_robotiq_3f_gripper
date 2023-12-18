@@ -34,12 +34,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 add_library(
   robotiq_3f_controllers
   SHARED
-  include/robotiq_3f_controllers/robotiq_3f_controller.hpp
-  include/robotiq_3f_controllers/robotiq_3f_gripper_action_controller.hpp
-  include/robotiq_3f_controllers/robotiq_3f_status_publisher_controller.hpp
   src/robotiq_3f_controller.cpp
-  src/robotiq_3f_gripper_action_controller.cpp
-  src/robotiq_3f_status_publisher_controller.cpp
+  include/robotiq_3f_controllers/robotiq_3f_controller.hpp
 )
 target_include_directories(
   robotiq_3f_controllers

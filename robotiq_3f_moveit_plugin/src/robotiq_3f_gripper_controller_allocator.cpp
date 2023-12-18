@@ -43,13 +43,13 @@ namespace
 constexpr auto kGripperCommandAction = "gripper_cmd";
 }  // namespace
 
-namespace epick_moveit_plugin
+namespace robotiq_3f_moveit_plugin
 {
 /**
- * \brief Controller allocator plugin to allow the EpickGripperActionController to execute trajectories using MoveIt in
+ * \brief Controller allocator plugin to allow the Robotiq3fGripperActionController to execute trajectories using MoveIt in
  * the same way as the ros2_controllers GripperActionController
  */
-class EpickGripperControllerAllocator : public moveit_ros_control_interface::ControllerHandleAllocator
+class Robotiq3fGripperControllerAllocator : public moveit_ros_control_interface::ControllerHandleAllocator
 {
 public:
   moveit_controller_manager::MoveItControllerHandlePtr alloc(const rclcpp::Node::SharedPtr& node,
@@ -61,7 +61,7 @@ public:
   }
 };
 
-}  // namespace epick_moveit_plugin
+}  // namespace robotiq_3f_moveit_plugin
 
-PLUGINLIB_EXPORT_CLASS(epick_moveit_plugin::EpickGripperControllerAllocator,
+PLUGINLIB_EXPORT_CLASS(robotiq_3f_moveit_plugin::Robotiq3fGripperControllerAllocator,
                        moveit_ros_control_interface::ControllerHandleAllocator);

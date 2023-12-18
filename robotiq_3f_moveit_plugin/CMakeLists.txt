@@ -26,7 +26,7 @@ ament_target_dependencies(robotiq_3f_gripper_controller_allocator PUBLIC
   moveit_simple_controller_manager
 )
 
-# Register the Epick gripper controller allocator plugin with MoveIt's ros_control interface
+# Register the Robotiq3f gripper controller allocator plugin with MoveIt's ros_control interface
 pluginlib_export_plugin_description_file(moveit_ros_control_interface moveit_ros_control_interface_plugins.xml)
 
 # Install our library.

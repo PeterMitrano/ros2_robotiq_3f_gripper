@@ -86,7 +86,7 @@ struct JointsDoubles
 struct SimpleControlCommandDoubles
 {
   double position = 0.;
-  double speed = kDefaultSpeed;
+  double velocity = kDefaultVelocity;
   double force = kDefaultForce;
   double grasping_mode = 0.;
 };

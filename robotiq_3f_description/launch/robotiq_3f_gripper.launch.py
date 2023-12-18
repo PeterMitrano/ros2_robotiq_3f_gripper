@@ -56,57 +56,13 @@ def launch_setup(context, *args, **kwargs):
     # Declare all parameters.
     description_package_param = LaunchConfiguration("description_package")
     description_file_param = LaunchConfiguration("description_file")
-    controllers_config_file_param = LaunchConfiguration("controllers_file")
 
     # Extract all parameters' values.
     description_file = PathJoinSubstitution(
         [FindPackageShare(description_package_param), "urdf", description_file_param]
     ).perform(context)
-    controllers_config_file = PathJoinSubstitution(
-        [
-            FindPackageShare(description_package_param),
-            "config",
-            controllers_config_file_param,
-        ]
-    ).perform(context)
 
     robot_description_content = xacro.process_file(description_file).toxml()
-
-    # The Controller Manager (CM) connects the controllers’ and hardware-abstraction
-    # sides of the ros2_control framework. It also serves as the entry-point for users
-    # through ROS services.
-    # https://control.ros.org/master/doc/getting_started/getting_started.html#architecture
-    controller_manager = Node(
-        package="controller_manager",
-        executable="ros2_control_node",
-        parameters=[
-            controllers_config_file,
-        ],
-        remappings=[("~/robot_description", "/robot_description")],
-        output={
-            "stdout": "screen",
-            "stderr": "screen",
-        },
-    )
-
-    # Controllers
-    controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["simple_position_controller", "-c", "/controller_manager"],
-    )
-
-    joint_state_broadcaster = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_state_broadcaster", "-c", "/controller_manager"],
-    )
-
-    actuator_state_broadcaster = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["actuator_state_broadcaster", "-c", "/controller_manager"],
-    )
 
     # robot_state_publisher uses the URDF specified by the parameter robot_description
     # and the joint positions from the topic /joint_states to calculate the forward
@@ -119,11 +75,15 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
     )
 
+    robotiq_driver_node = Node(
+        package="robotiq_3f_driver",
+        executable="robotiq_3f_driver_node",
+        name="robotiq_3f_driver_node",
+        output="screen",
+    )
+
     nodes_to_start = [
-        controller_manager,
-        controller_spawner,
-        joint_state_broadcaster,
-        actuator_state_broadcaster,
+        robotiq_driver_node,
         robot_state_publisher_node,
     ]
     return nodes_to_start

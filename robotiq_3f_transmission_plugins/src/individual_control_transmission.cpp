@@ -5,13 +5,49 @@
 
 const auto kLogger = rclcpp::get_logger("Robotiq3fGripperHardwareInterface");
 
-double double_to_uint8(double value)
+double double_to_uint8(double const value)
 {
   return value * 255.0;
 };
 
 namespace robotiq_3f_transmission_plugins
 {
+
+std::array<double, 3> get_finger_thetas(double const g)
+{
+  // Copied from URDF, very sad
+  constexpr auto const theta_1_upper = 1.2218;
+  constexpr auto const theta_2_upper = 1.5708;
+  constexpr auto const theta_3_lower = -1.2217;
+
+  constexpr auto const m_1 = theta_1_upper / 140.0;
+  constexpr auto const m_2 = theta_2_upper / 100.0;
+
+  if (g <= 110)
+  {
+    return std::array<double, 3>{ m_1 * g, 0.0, -m_1 * g };
+  }
+  else if (g <= 140)
+  {
+    return std::array<double, 3>{ m_1 * g, 0.0, theta_3_lower };
+  }
+  else if (g <= 240)
+  {
+    return std::array<double, 3>{ theta_1_upper, m_2 * (g - 140), theta_3_lower };
+  }
+  else
+  {
+    return std::array<double, 3>{ theta_1_upper, theta_2_upper, theta_3_lower };
+  }
+}
+
+double get_palm_finger_pos(double const scissor_pos)
+{
+  constexpr auto const palm_finger_lower = -0.192;
+  constexpr auto const palm_finger_upper = 0.1784;
+  auto const palm_finger = scissor_pos / 255.0 * (palm_finger_upper - palm_finger_lower) + palm_finger_lower;
+  return palm_finger;
+}
 
 void IndividualControlTransmission::configure(const std::vector<transmission_interface::JointHandle>& joint_handles,
                                               const std::vector<transmission_interface::ActuatorHandle>& actuator_handles)
@@ -88,44 +124,10 @@ void IndividualControlTransmission::actuator_to_joint()
   auto const finger_c_pos = double_to_uint8(finger_c_actuator_->get_value());
   auto const scissor_pos = double_to_uint8(scissor_actuator_->get_value());
 
-  // Copied from URDF :(
-  auto const theta_1_lower = 0.0495;
-  auto const theta_1_upper = 1.2218;
-  auto const theta_2_lower = 0.0;
-  auto const theta_2_upper = 1.5708;
-  auto const theta_3_lower = -1.2217;
-  auto const theta_3_upper = -0.0523;
-  auto const palm_finger_lower = -0.192;
-  auto const palm_finger_upper = 0.1784;
-
-  auto const m_1 = theta_1_upper / 140.0;
-  auto const m_2 = theta_2_upper / 100.0;
-
-  auto get_finger_thetas = [&](auto const g) {
-    if (g <= 110)
-    {
-      return std::array<double, 3>{ m_1 * g, 0.0, -m_1 * g };
-    }
-    else if (g <= 140)
-    {
-      return std::array<double, 3>{ m_1 * g, 0.0, theta_3_lower };
-    }
-    else if (g <= 240)
-    {
-      return std::array<double, 3>{ theta_1_upper, m_2 * (g - 140), theta_3_lower };
-    }
-    else
-    {
-      return std::array<double, 3>{ theta_1_upper, theta_2_upper, theta_3_lower };
-    }
-  };
-
-  auto const finger_a_thetas = get_finger_thetas(finger_a_pos);
-  auto const finger_b_thetas = get_finger_thetas(finger_b_pos);
-  auto const finger_c_thetas = get_finger_thetas(finger_c_pos);
-
-  // Scissor
-  auto const palm_finger = scissor_pos / 255.0 * (palm_finger_upper - palm_finger_lower) + palm_finger_lower;
+  auto const finger_a_thetas = robotiq_3f_transmission_plugins::get_finger_thetas(finger_a_pos);
+  auto const finger_b_thetas = robotiq_3f_transmission_plugins::get_finger_thetas(finger_b_pos);
+  auto const finger_c_thetas = robotiq_3f_transmission_plugins::get_finger_thetas(finger_c_pos);
+  double palm_finger = robotiq_3f_transmission_plugins::get_palm_finger_pos(scissor_pos);
 
   finger_a_joint_1_->set_value(finger_a_thetas[0]);
   finger_a_joint_2_->set_value(finger_a_thetas[1]);
@@ -138,7 +140,7 @@ void IndividualControlTransmission::actuator_to_joint()
   finger_c_joint_3_->set_value(finger_c_thetas[2]);
   palm_finger_c_joint_->set_value(-palm_finger);
   palm_finger_b_joint_->set_value(palm_finger);
-};
+}
 
 void IndividualControlTransmission::joint_to_actuator()
 {

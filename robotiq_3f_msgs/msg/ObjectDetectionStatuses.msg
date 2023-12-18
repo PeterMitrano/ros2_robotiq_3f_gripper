@@ -1,5 +1,0 @@
-# Reports whether an object has been gripped or not.
-robotiq_3f_msgs/ObjectDetectionStatus finger_a_status
-robotiq_3f_msgs/ObjectDetectionStatus finger_b_status
-robotiq_3f_msgs/ObjectDetectionStatus finger_c_status
-robotiq_3f_msgs/ObjectDetectionStatus finger_scissor_status

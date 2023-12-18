@@ -77,7 +77,7 @@ void FakeDriver::send_independent_control_command(IndependentControlCommand cons
 {
 }
 
-void FakeDriver::send_simple_control_command(GraspingMode const& mode, double position, double speed, double force)
+void FakeDriver::send_simple_control_command(GraspingMode const& mode, double position, double velocity, double force)
 {
 }
 

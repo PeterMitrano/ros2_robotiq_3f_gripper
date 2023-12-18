@@ -234,7 +234,7 @@ std::vector<hardware_interface::CommandInterface> Robotiq3fGripperHardwareInterf
     command_interfaces.emplace_back("scissor", hardware_interface::HW_IF_POSITION, &independent_cmd_.scissor_position);
 
     command_interfaces.emplace_back("simple", hardware_interface::HW_IF_POSITION, &simple_cmd_.position);
-    command_interfaces.emplace_back("simple", hardware_interface::HW_IF_VELOCITY, &simple_cmd_.speed);
+    command_interfaces.emplace_back("simple", hardware_interface::HW_IF_VELOCITY, &simple_cmd_.velocity);
     command_interfaces.emplace_back("simple", hardware_interface::HW_IF_EFFORT, &simple_cmd_.force);
 
     // using POSITION here is such a hack
@@ -365,7 +365,7 @@ void Robotiq3fGripperHardwareInterface::background_task()
         else
         {
           auto const grasping_mode = default_driver_utils::double_to_grasping_mode(simple_cmd_.grasping_mode);
-          driver_->send_simple_control_command(grasping_mode, simple_cmd_.position, simple_cmd_.speed,
+          driver_->send_simple_control_command(grasping_mode, simple_cmd_.position, simple_cmd_.velocity,
                                                simple_cmd_.force);
         }
       }

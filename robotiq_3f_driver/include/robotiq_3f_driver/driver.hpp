@@ -138,7 +138,7 @@ struct FullGripperStatus
 };
 
 constexpr auto kDefaultForce = 0.5;
-constexpr auto kDefaultSpeed = 1.0;
+constexpr auto kDefaultVelocity = 1.0;
 
 // We use this structure to hold our command interface values.
 // NOTE: should these be zero initialized or NaN initialized?
@@ -148,10 +148,10 @@ struct IndependentControlCommand
   double finger_b_position = 0;
   double finger_c_position = 0;
   double scissor_position = 0;
-  double finger_a_velocity = kDefaultSpeed;
-  double finger_b_velocity = kDefaultSpeed;
-  double finger_c_velocity = kDefaultSpeed;
-  double scissor_velocity = kDefaultSpeed;
+  double finger_a_velocity = kDefaultVelocity;
+  double finger_b_velocity = kDefaultVelocity;
+  double finger_c_velocity = kDefaultVelocity;
+  double scissor_velocity = kDefaultVelocity;
   double finger_a_force = kDefaultForce;
   double finger_b_force = kDefaultForce;
   double finger_c_force = kDefaultForce;
@@ -190,7 +190,7 @@ public:
 
   virtual void send_independent_control_command(IndependentControlCommand const& cmd) = 0;
 
-  virtual void send_simple_control_command(GraspingMode const& mode, double position, double speed, double force) = 0;
+  virtual void send_simple_control_command(GraspingMode const& mode, double position, double velocity, double force) = 0;
 
   virtual void clear_faults() = 0;
 

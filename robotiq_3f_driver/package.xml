@@ -17,7 +17,7 @@
   <depend>rclcpp_lifecycle</depend>
   <depend>serial</depend>
   <depend>robotiq_3f_transmission_plugins</depend>
-  <depend>robotiq_3f_msgs</depend>
+  <depend>robotiq_3f_interfaces</depend>
 
   <!-- Check code against style conventions using clang-format. -->
   <test_depend>ament_clang_format</test_depend>

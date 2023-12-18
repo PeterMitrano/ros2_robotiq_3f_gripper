@@ -20,7 +20,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(serial REQUIRED)
 find_package(robotiq_3f_transmission_plugins REQUIRED)
-find_package(robotiq_3f_msgs REQUIRED)
+find_package(robotiq_3f_interfaces REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
         ament_cmake
@@ -29,7 +29,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
         rclcpp
         rclcpp_lifecycle
         robotiq_3f_transmission_plugins
-        robotiq_3f_msgs
+        robotiq_3f_interfaces
         serial
 )
 
@@ -114,12 +114,13 @@ ament_export_libraries(
 # Main program to demo the driver on real hardware
 
 add_executable(
-        robotiq_3f_driver_main
-        src/default_driver_main.cpp
+        robotiq_3f_driver_node
+        src/robotiq_3f_driver_node.cpp
 )
 target_link_libraries(
-        robotiq_3f_driver_main
+        robotiq_3f_driver_node
         robotiq_3f_driver
+        robotiq_3f_transmission_plugins::individual_control_transmission
 )
 
 ###############################################################################
@@ -133,11 +134,11 @@ install(
 
 # Install our library.
 install(
-        TARGETS robotiq_3f_driver
+        TARGETS robotiq_3f_driver robotiq_3f_driver_node
         EXPORT robotiq_3f_driver_targets
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}      # lib
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}      # lib
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}      # bin
+        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
 )
 

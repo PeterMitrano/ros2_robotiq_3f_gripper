@@ -135,6 +135,7 @@ public:
     change_grasping_mode_service_ = create_service<robotiq_3f_interfaces::srv::ChangeGraspingMode>(
         "change_grasping_mode", std::bind(&ROSDriver::change_grasping_mode, this, _1, _2), rmw_qos_profile_services_default, change_grasping_mode_cb_group_);
 
+    gripper_command_action_cb_group_ = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
     gripper_command_action_ = rclcpp_action::create_server<GripperCommand>(
         this, "gripper_cmd",  // NOTE: this must match the string in the moveit plugin allocator
         [&](rclcpp_action::GoalUUID const& uuid, GripperCommand::Goal::ConstSharedPtr goal) {
@@ -158,11 +159,10 @@ public:
           // NOTE: std::bind looks pretty clean here compared to the lambda. I tried some version of the lambda,
           // but they caused things to crash, so I'm sticking with this for now.
           std::thread{ std::bind(&ROSDriver::execute_gripper_command, this, _1), goal_handle }.detach();
-        });
+        }, rcl_action_server_get_default_options(), gripper_command_action_cb_group_);
 
     // Create a timer callback at 100HZ to publish the states
     timer_ = create_wall_timer(10ms, [&]() {
-      RCLCPP_INFO(kLogger, "Waiting to acquire driver mutex for publishing joint state");
       FullGripperStatus status{};
       {
         std::lock_guard<std::mutex> lock(driver_mutex_);
@@ -226,7 +226,6 @@ public:
 
     // Wait until the motion status said we've finished changing modes.
     // and yes it really can take a long time!
-    RCLCPP_INFO(kLogger, "Waiting for grasp mode change to complete");
     auto const success = wait_until_reached(30.0);
 
     res->success = success;
@@ -256,7 +255,6 @@ public:
     auto const t0 = std::chrono::steady_clock::now();
     while (true)
     {
-      RCLCPP_INFO_STREAM(kLogger, "Waiting... ");
       FullGripperStatus status{};
       {
         std::lock_guard<std::mutex> lock(driver_mutex_);
@@ -300,6 +298,7 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
 
   rclcpp::CallbackGroup::SharedPtr change_grasping_mode_cb_group_;
+  rclcpp::CallbackGroup::SharedPtr gripper_command_action_cb_group_;
 
   GraspingMode latest_mode_ = GraspingMode::BASIC;
 };

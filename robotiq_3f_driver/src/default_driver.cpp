@@ -159,7 +159,7 @@ void DefaultDriver::clear_faults()
 {
   RCLCPP_INFO(kLogger, "Clearing faults...");
 
-  build_request_and_send({ 0x00, 0x00}, 8);
+  build_request_and_send({ 0x00, 0x00 }, 8);
 }
 
 void DefaultDriver::build_request_and_send(std::vector<uint8_t> regs, size_t const response_size)
@@ -302,8 +302,7 @@ void DefaultDriver::send_independent_control_command(IndependentControlCommand c
 
   build_request_and_send(
       {
-          action_request_register,
-          gripper_options_register,
+          action_request_register, gripper_options_register,
           0x00,  // This register must always be empty
           default_driver_utils::double_to_uint8(cmd.finger_a_position),
           default_driver_utils::double_to_uint8(cmd.finger_a_velocity),
@@ -357,28 +356,10 @@ void DefaultDriver::send_simple_control_command(GraspingMode const& mode, double
       8);
 }
 
-bool DefaultDriver::wait_until_reached(double timeout)
+DefaultDriver::~DefaultDriver()
 {
-  auto const t0 = std::chrono::steady_clock::now();
-
-  while (true)
-  {
-    auto const status = get_full_status();
-    auto const motion_stopped = status.motion_status == MotionStatus::STOPPED_REACHED;
-    auto const not_changing_modes = status.gripper_status != GripperStatus::MODE_CHANGE_IN_PROGRESS;
-    if (motion_stopped && not_changing_modes)
-    {
-      return true;
-    }
-
-    auto const t1 = std::chrono::steady_clock::now();
-    auto const dt = std::chrono::duration_cast<std::chrono::duration<double>>(t1 - t0).count();
-    if (dt > timeout)
-    {
-      return false;
-    }
-  }
-
+  DefaultDriver::deactivate();
+  DefaultDriver::disconnect();
 }
 
 }  // namespace robotiq_3f_driver

@@ -193,13 +193,6 @@ public:
   virtual void send_simple_control_command(GraspingMode const& mode, double position, double velocity, double force) = 0;
 
   virtual void clear_faults() = 0;
-
-  /**
-   *
-   * @param timeout
-   * @return True if reached, False if timed out
-   */
-  virtual bool wait_until_reached(double timeout) = 0;
 };
 
 }  // namespace robotiq_3f_driver

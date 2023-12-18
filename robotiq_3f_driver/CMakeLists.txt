@@ -12,26 +12,22 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif ()
 
-find_package(ament_cmake REQUIRED)
-find_package(hardware_interface REQUIRED)
-find_package(transmission_interface REQUIRED)
-find_package(pluginlib REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(rclcpp_lifecycle REQUIRED)
-find_package(serial REQUIRED)
-find_package(robotiq_3f_transmission_plugins REQUIRED)
-find_package(robotiq_3f_interfaces REQUIRED)
-
 set(THIS_PACKAGE_INCLUDE_DEPENDS
         ament_cmake
+        control_msgs
         hardware_interface
         pluginlib
         rclcpp
+        rclcpp_action
         rclcpp_lifecycle
-        robotiq_3f_transmission_plugins
         robotiq_3f_interfaces
+        robotiq_3f_transmission_plugins
         serial
 )
+
+foreach (THIS_PACKAGE_INCLUDE_DEPEND ${THIS_PACKAGE_INCLUDE_DEPENDS})
+    find_package(${THIS_PACKAGE_INCLUDE_DEPEND} REQUIRED)
+endforeach ()
 
 # Robotiq 3f driver library.
 

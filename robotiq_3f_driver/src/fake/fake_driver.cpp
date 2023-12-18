@@ -81,11 +81,6 @@ void FakeDriver::send_simple_control_command(GraspingMode const& mode, double po
 {
 }
 
-bool FakeDriver::wait_until_reached(double timeout)
-{
-  return true;
-}
-
 void FakeDriver::clear_faults()
 {
 }

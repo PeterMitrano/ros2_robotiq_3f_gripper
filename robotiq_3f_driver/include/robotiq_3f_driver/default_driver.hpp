@@ -51,6 +51,8 @@ public:
    */
   explicit DefaultDriver(std::unique_ptr<Serial> serial);
 
+  virtual ~DefaultDriver();
+
   void set_slave_address(uint8_t slave_address) override;
   bool connect() override;
   void disconnect() override;
@@ -66,8 +68,6 @@ public:
   void send_independent_control_command(IndependentControlCommand const& cmd) override;
 
   void send_simple_control_command(GraspingMode const& mode, double position, double velocity, double force) override;
-
-  bool wait_until_reached(double timeout) override;
 
   void clear_faults() override;
 

@@ -47,7 +47,6 @@ public:
   MOCK_METHOD(FullGripperStatus, get_full_status, (), (override));
   MOCK_METHOD(void, send_independent_control_command, (IndependentControlCommand const&), (override));
   MOCK_METHOD(void, send_simple_control_command, (GraspingMode const&, double, double, double), (override));
-  MOCK_METHOD(bool, wait_until_reached, (double), (override));
   MOCK_METHOD(void, clear_faults, (), (override));
 
 };

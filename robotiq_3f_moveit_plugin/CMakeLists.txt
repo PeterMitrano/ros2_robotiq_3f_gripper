@@ -1,5 +1,3 @@
-# See https://docs.ros.org/en/foxy/How-To-Guides/Ament-CMake-Documentation.html
-
 cmake_minimum_required(VERSION 3.8)
 project(robotiq_3f_moveit_plugin VERSION 0.0.1 LANGUAGES CXX)
 
@@ -34,7 +32,7 @@ install(
   TARGETS robotiq_3f_gripper_controller_allocator
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}      # lib
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}      # lib
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}      # bin
+  RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}
   INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
 )
 

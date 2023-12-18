@@ -56,7 +56,7 @@ install(TARGETS individual_control_transmission
         EXPORT export_individual_control_transmission # Must match the first argument to ament_export_targets() below
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}      # lib
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}      # lib
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}      # bin
+        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
 )
 

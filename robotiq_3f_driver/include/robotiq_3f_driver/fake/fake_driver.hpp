@@ -54,7 +54,6 @@ public:
   FullGripperStatus get_full_status() override;
   void send_independent_control_command(IndependentControlCommand const& cmd) override;
   void send_simple_control_command(GraspingMode const& mode, double position, double velocity, double force) override;
-  bool wait_until_reached(double timeout) override;
   void clear_faults() override;
 private:
   uint8_t slave_address_ = 0x00;

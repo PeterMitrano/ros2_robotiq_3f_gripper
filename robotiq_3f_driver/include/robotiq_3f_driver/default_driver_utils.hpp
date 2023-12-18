@@ -66,6 +66,8 @@ const std::string gripper_activation_status_to_string(const GripperActivationSta
 
 GraspingMode get_grasping_mode(const uint8_t& reg);
 const std::string grasping_mode_to_string(const GraspingMode grasping_mode);
+GraspingMode double_to_grasping_mode(const double& value);
+double grasping_mode_to_double(const GraspingMode grasping_mode);
 
 GoTo get_go_to_status(const uint8_t& reg);
 const std::string go_to_to_string(const GoTo go_to);
@@ -80,6 +82,9 @@ ObjectDetectionStatus get_finger_a_object_status(const uint8_t& reg);
 ObjectDetectionStatus get_finger_b_object_status(const uint8_t& reg);
 ObjectDetectionStatus get_finger_c_object_status(const uint8_t& reg);
 ObjectDetectionStatus get_scissor_object_status(const uint8_t& reg);
+
+ObjectDetectionStatus double_to_object_detection_status(const double& value);
+double object_detection_status_to_double(const ObjectDetectionStatus& object_detection_status);
 
 GripperFaultStatus get_gripper_fault_status(const uint8_t& reg);
 const std::string fault_status_to_string(const GripperFaultStatus fault_status);

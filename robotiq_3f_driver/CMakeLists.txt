@@ -20,6 +20,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(serial REQUIRED)
 find_package(robotiq_3f_transmission_plugins REQUIRED)
+find_package(robotiq_3f_msgs REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
         ament_cmake
@@ -28,6 +29,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
         rclcpp
         rclcpp_lifecycle
         robotiq_3f_transmission_plugins
+        robotiq_3f_msgs
         serial
 )
 

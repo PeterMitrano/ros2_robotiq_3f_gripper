@@ -8,6 +8,9 @@ controller_manager:
     individual_position_controller:
       type: position_controllers/JointGroupPositionController
 
+    simple_position_controller:
+      type: position_controllers/JointGroupPositionController
+
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
@@ -18,10 +21,19 @@ controller_manager:
 individual_position_controller:
   ros__parameters:
     joints:
+      - use_independent_control
       - finger_a
       - finger_b
       - finger_c
       - scissor
+
+simple_position_controller:
+  ros__parameters:
+    joints:
+      - use_independent_control
+      - simple
+      - grasping_mode
+
 
 actuator_state_broadcaster:
   ros__parameters:
@@ -47,17 +59,17 @@ actuator_state_broadcaster:
 joint_state_broadcaster:
   ros__parameters:
     joints:
-      - finger_c_joint_1
-      - finger_c_joint_2
-      - finger_c_joint_3
-      - finger_b_joint_1
-      - finger_b_joint_2
-      - finger_b_joint_3
       - finger_a_joint_1
       - finger_a_joint_2
       - finger_a_joint_3
-      - palm_finger_c_joint
+      - finger_b_joint_1
+      - finger_b_joint_2
+      - finger_b_joint_3
+      - finger_c_joint_1
+      - finger_c_joint_2
+      - finger_c_joint_3
       - palm_finger_b_joint
+      - palm_finger_c_joint
     interfaces:
       - position
       - position

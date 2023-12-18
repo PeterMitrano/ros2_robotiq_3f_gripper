@@ -53,15 +53,7 @@
 namespace robotiq_3f_driver
 {
 
-struct ActuatorStates
-{
-  double finger_a;
-  double finger_b;
-  double finger_c;
-  double scissor;
-};
-
-struct JointStates
+struct TransmissionOutputs
 {
   double finger_a_joint_1;
   double finger_a_joint_2;
@@ -74,6 +66,29 @@ struct JointStates
   double finger_c_joint_3;
   double palm_finger_c_joint;
   double palm_finger_b_joint;
+};
+
+/**
+ * This struct is used to store a double for each of the joints/actuators,
+ * which could be positions, current, object detection status etc...
+ *
+ * We have to use doubles because ROS control only lets us bind state/action interfaces to doubles.
+ *
+ */
+struct JointsDoubles
+{
+  double finger_a;
+  double finger_b;
+  double finger_c;
+  double scissor;
+};
+
+struct SimpleControlCommandDoubles
+{
+  double position = 0.;
+  double speed = kDefaultSpeed;
+  double force = kDefaultForce;
+  double grasping_mode = 0.;
 };
 
 class Robotiq3fGripperHardwareInterface : public hardware_interface::SystemInterface
@@ -176,10 +191,14 @@ private:
 
   // These are the ones we bind to in the state and command interfaces.
   // They are protected by the mutexes, since we read/send_independent_control_command to them from the background thread.
-  FullGripperStatus status_;
-  IndependentControlCommand cmd_;
-  JointStates state_;
-  ActuatorStates actuator_states_;
+  IndependentControlCommand independent_cmd_;
+  SimpleControlCommandDoubles simple_cmd_;
+  JointsDoubles act_state_;         // the joint positions as read from hardware. Also input to the transmission
+  TransmissionOutputs trn_output_;  // the joint positions as predicted by the transmission -- not read from hardware
+  JointsDoubles joint_current_state_;
+  JointsDoubles object_detection_state_;
+  double grasp_mode_;
+  double use_independent_control_;  // 0.0 for simple control, 1.0 for independent control
 
   std::mutex state_mutex_;
   std::mutex cmd_mutex_;

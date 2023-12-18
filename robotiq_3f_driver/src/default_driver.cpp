@@ -28,7 +28,6 @@
 
 #include <serial/serial.h>
 
-#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -73,11 +72,7 @@ const auto kLogger = rclcpp::get_logger("DefaultDriver");
 constexpr auto kMaxRetries = 5;
 
 constexpr uint16_t kActionRequestRegisterAddress = 0x03E8;
-constexpr uint16_t kGripperOptionsRegisterAddress = 0x03E9;
 constexpr uint16_t kGripperStatusRegister = 0x07D0;
-constexpr uint16_t kObjectDetectionRegister = 0x07D1;
-constexpr uint16_t kFaultStatusRegister = 0x07D2;
-constexpr uint16_t kFingerAReqEchoRegister = 0x07D3;
 
 constexpr size_t kActivateResponseSize = 8;
 constexpr size_t kDectivateResponseSize = 8;
@@ -265,7 +260,7 @@ FullGripperStatus DefaultDriver::get_full_status()
   // byte 3 contains the gripper status, which includes gACT through gSTA.
   // byte 4 contains the object status, which is gDTA through gDTS.
   // byte 5 contains the fault status (gFLT).
-  FullGripperStatus status;
+  FullGripperStatus status{};
   status.activation_status = default_driver_utils::get_gripper_activation_status(response[3]);
   status.mode_status = default_driver_utils::get_grasping_mode(response[3]);
   status.go_to_status = default_driver_utils::get_go_to_status(response[3]);
@@ -276,18 +271,18 @@ FullGripperStatus DefaultDriver::get_full_status()
   status.finger_c_object_detection_status = default_driver_utils::get_finger_c_object_status(response[4]);
   status.scissor_object_detection_status = default_driver_utils::get_scissor_object_status(response[4]);
   status.fault_status = default_driver_utils::get_gripper_fault_status(response[5]);
-  status.finger_a_position_cmd_echo = default_driver_utils::uint8_to_double(response[6]);
-  status.finger_a_position = default_driver_utils::uint8_to_double(response[7]);
-  status.finger_a_current = default_driver_utils::uint8_to_double(response[8]);
-  status.finger_b_position_cmd_echo = default_driver_utils::uint8_to_double(response[9]);
-  status.finger_b_position = default_driver_utils::uint8_to_double(response[10]);
-  status.finger_b_current = default_driver_utils::uint8_to_double(response[11]);
-  status.finger_c_position_cmd_echo = default_driver_utils::uint8_to_double(response[12]);
-  status.finger_c_position = default_driver_utils::uint8_to_double(response[13]);
-  status.finger_c_current = default_driver_utils::uint8_to_double(response[14]);
-  status.scissor_position_cmd_echo = default_driver_utils::uint8_to_double(response[15]);
-  status.scissor_position = default_driver_utils::uint8_to_double(response[16]);
-  status.scissor_current = default_driver_utils::uint8_to_double(response[17]);
+  status.finger_a_position_cmd_echo = response[6];
+  status.finger_a_position = response[7];
+  status.finger_a_current = response[8];
+  status.finger_b_position_cmd_echo = response[9];
+  status.finger_b_position = response[10];
+  status.finger_b_current = response[11];
+  status.finger_c_position_cmd_echo = response[12];
+  status.finger_c_position = response[13];
+  status.finger_c_current = response[14];
+  status.scissor_position_cmd_echo = response[15];
+  status.scissor_position = response[16];
+  status.scissor_current = response[17];
 
   return status;
 }

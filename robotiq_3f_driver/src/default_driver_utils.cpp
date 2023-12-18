@@ -57,11 +57,6 @@ void set_bits(uint8_t& reg, uint8_t bitmask, uint8_t bits)
 
 double uint8_to_double(const uint8_t& value)
 {
-  if (value > 255)
-  {
-    RCLCPP_WARN(rclcpp::get_logger("robotiq_3f_driver"), "Value %d is greater than 255, returning 1.0", value);
-    return 1.0;
-  }
   return static_cast<double>(value) / 255.0;
 }
 
@@ -283,10 +278,12 @@ GripperStatus get_gripper_status(const uint8_t& reg)
 
 const std::string gripper_status_to_string(const GripperStatus gripper_status)
 {
-  static std::map<GripperStatus, std::string> map = { { GripperStatus::RESET, "RESET" },
-                                                      { GripperStatus::ACTIVATION_IN_PROGRESS, "ACTIVATION_IN_PROGRESS" },
-                                                      { GripperStatus::MODE_CHANGE_IN_PROGRESS, "MODE_CHANGE_IN_PROGRESS" },
-                                                      { GripperStatus::ACTIVATED, "ACTIVATED" } };
+  static std::map<GripperStatus, std::string> map = {
+    { GripperStatus::RESET, "RESET" },
+    { GripperStatus::ACTIVATION_IN_PROGRESS, "ACTIVATION_IN_PROGRESS" },
+    { GripperStatus::MODE_CHANGE_IN_PROGRESS, "MODE_CHANGE_IN_PROGRESS" },
+    { GripperStatus::ACTIVATED, "ACTIVATED" }
+  };
   return map.at(gripper_status);
 }
 
@@ -420,6 +417,58 @@ const std::string fault_status_to_string(const GripperFaultStatus fault_status)
     { GripperFaultStatus::AUTOMATIC_RELEASE_FAULT, "AUTOMATIC_RELEASE_FAULT" },
   };
   return map.at(fault_status);
+}
+double object_detection_status_to_double(const ObjectDetectionStatus& object_detection_status)
+{
+  switch (object_detection_status)
+  {
+    case ObjectDetectionStatus::MOVING:
+      return 0.0;
+    case ObjectDetectionStatus::OBJECT_DETECTED_OPENING:
+      return 1.0;
+    case ObjectDetectionStatus::OBJECT_DETECTED_CLOSING:
+      return 2.0;
+    case ObjectDetectionStatus::AT_REQUESTED_POSITION:
+      return 3.0;
+    default:
+      return 4.0;
+  }
+}
+
+ObjectDetectionStatus double_to_object_detection_status(const double& value)
+{
+  static const std::unordered_map<double, ObjectDetectionStatus> map{
+    { 0.0, ObjectDetectionStatus::MOVING },
+    { 1.0, ObjectDetectionStatus::OBJECT_DETECTED_OPENING },
+    { 2.0, ObjectDetectionStatus::OBJECT_DETECTED_CLOSING },
+    { 3.0, ObjectDetectionStatus::AT_REQUESTED_POSITION },
+    { 4.0, ObjectDetectionStatus::AT_REQUESTED_POSITION }
+  };
+  return map.at(value);
+}
+double grasping_mode_to_double(const GraspingMode grasping_mode)
+{
+  switch (grasping_mode)
+  {
+    case GraspingMode::BASIC:
+      return 0.0;
+    case GraspingMode::PINCH:
+      return 1.0;
+    case GraspingMode::WIDE:
+      return 2.0;
+    case GraspingMode::SCISSOR:
+      return 3.0;
+    default:
+      return 4.0;
+  }
+}
+GraspingMode double_to_grasping_mode(const double& value)
+{
+  static const std::unordered_map<double, GraspingMode> map{ { 0.0, GraspingMode::BASIC },
+                                                             { 1.0, GraspingMode::PINCH },
+                                                             { 2.0, GraspingMode::WIDE },
+                                                             { 3.0, GraspingMode::SCISSOR } };
+  return map.at(value);
 }
 
 }  // namespace robotiq_3f_driver::default_driver_utils

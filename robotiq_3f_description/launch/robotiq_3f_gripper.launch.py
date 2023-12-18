@@ -93,7 +93,7 @@ def launch_setup(context, *args, **kwargs):
     controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["individual_position_controller", "-c", "/controller_manager"],
+        arguments=["simple_position_controller", "-c", "/controller_manager"],
     )
 
     joint_state_broadcaster = Node(

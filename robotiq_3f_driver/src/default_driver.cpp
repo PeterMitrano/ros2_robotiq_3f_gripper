@@ -94,8 +94,12 @@ std::vector<uint8_t> DefaultDriver::send(const std::vector<uint8_t>& request, si
   {
     try
     {
+      auto const t0 =  std::chrono::high_resolution_clock::now();
       serial_->write(request);
       response = serial_->read(response_size);
+      auto const t1 =  std::chrono::high_resolution_clock::now();
+      auto const dt = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+      RCLCPP_DEBUG_STREAM(kLogger, "serial dt: " << dt << " us");
 
       break;
     }
@@ -143,9 +147,6 @@ void DefaultDriver::activate()
   // Ensure no accidental motion, since we don't know what values the command registers might have
   default_driver_utils::set_go_to(action_request_register, GoTo::STOP);
 
-  //  uint8_t gripper_options_register = 0b00000000;
-  //  default_driver_utils::set_individual_control_mode(gripper_options_register, true);
-  //  default_driver_utils::set_individual_scissor_control_mode(gripper_options_register, true);
   build_request_and_send({ action_request_register, 0x00 }, kActivateResponseSize);
 
   wait_until_activated();

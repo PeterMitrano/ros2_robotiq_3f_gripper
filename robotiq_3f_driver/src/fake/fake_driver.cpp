@@ -73,11 +73,11 @@ FullGripperStatus FakeDriver::get_full_status()
   return status;
 }
 
-void FakeDriver::send_independent_control_command(IndependentControlCommand const& cmd)
+void FakeDriver::send_independent_control_command(IndependentControlCommand const&)
 {
 }
 
-void FakeDriver::send_simple_control_command(GraspingMode const& mode, double position, double velocity, double force)
+void FakeDriver::send_simple_control_command(GraspingMode const&, double, double, double)
 {
 }
 

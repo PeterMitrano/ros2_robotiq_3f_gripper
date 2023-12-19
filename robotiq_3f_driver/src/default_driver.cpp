@@ -75,7 +75,7 @@ constexpr uint16_t kActionRequestRegisterAddress = 0x03E8;
 constexpr uint16_t kGripperStatusRegister = 0x07D0;
 
 constexpr size_t kActivateResponseSize = 8;
-constexpr size_t kDectivateResponseSize = 8;
+constexpr size_t kDeactivateResponseSize = 8;
 constexpr size_t kNumModBusRegisters = 8;
 constexpr size_t kResponseSizeHeaderSize = 5;
 
@@ -86,11 +86,6 @@ DefaultDriver::DefaultDriver(std::unique_ptr<Serial> serial) : serial_{ std::mov
 std::vector<uint8_t> DefaultDriver::send(const std::vector<uint8_t>& request, size_t response_size) const
 {
   std::stringstream req_ss;
-  for (auto const& d : request)
-  {
-    req_ss << std::hex << static_cast<int>(d) << " ";
-  }
-  RCLCPP_DEBUG_STREAM(kLogger, "req: " << req_ss.str().c_str());
   std::vector<uint8_t> response;
   response.reserve(response_size);
 
@@ -101,6 +96,7 @@ std::vector<uint8_t> DefaultDriver::send(const std::vector<uint8_t>& request, si
     {
       serial_->write(request);
       response = serial_->read(response_size);
+
       break;
     }
     catch (const serial::IOException& e)
@@ -214,26 +210,7 @@ void DefaultDriver::deactivate()
   RCLCPP_INFO(kLogger, "Deactivate...");
 
   // See 4.7.6 Modbus RTU Example, step 1: Activation request in the manual.
-  std::vector<uint8_t> request = {
-    slave_address_,
-    static_cast<uint8_t>(default_driver_utils::FunctionCode::PresetMultipleRegisters),
-    data_utils::get_msb(kActionRequestRegisterAddress),
-    data_utils::get_lsb(kActionRequestRegisterAddress),
-    0x00,      // Number of registers to send_independent_control_command MSB.
-    0x01,      // Number of registers to send_independent_control_command LSB.
-    2 * 0x01,  // Number of bytes to send_independent_control_command.
-    0x00,      // Action register.
-    0x00,
-  };
-  auto crc = crc_utils::compute_crc(request);
-  request.push_back(data_utils::get_msb(crc));
-  request.push_back(data_utils::get_lsb(crc));
-
-  auto response = send(request, kDectivateResponseSize);
-  if (response.empty())
-  {
-    throw DriverException{ "Failed to deactivate the gripper." };
-  }
+  build_request_and_send({ 0x00, 0x00 }, kDeactivateResponseSize);
 }
 
 FullGripperStatus DefaultDriver::get_full_status()

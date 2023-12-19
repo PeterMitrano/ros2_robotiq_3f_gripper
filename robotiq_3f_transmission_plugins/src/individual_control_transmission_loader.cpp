@@ -9,7 +9,7 @@ namespace robotiq_3f_transmission_plugins
 {
 
 std::shared_ptr<transmission_interface::Transmission>
-IndividualControlTransmissionLoader::load(const hardware_interface::TransmissionInfo& transmission_info)
+IndividualControlTransmissionLoader::load(const hardware_interface::TransmissionInfo& /*transmission_info*/)
 {
   return std::shared_ptr<transmission_interface::Transmission>(new IndividualControlTransmission());
 }

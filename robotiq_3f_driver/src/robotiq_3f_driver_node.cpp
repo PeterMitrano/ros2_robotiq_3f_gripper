@@ -81,7 +81,10 @@ public:
   {
     // ROS params
     declare_parameter<double>("speed_for_gripper_action", 1.0);
+    declare_parameter<double>("pub_period_seconds", 0.01);
+
     speed_for_gripper_action_ = get_parameter("speed_for_gripper_action").as_double();
+    pub_period_seconds_ = get_parameter("pub_period_seconds").as_double();
 
     auto serial = std::make_unique<DefaultSerial>();
     serial->set_port("/dev/ttyUSB1");
@@ -119,21 +122,22 @@ public:
           cmd.scissor_force = msg->scissor_force;
 
           {
-            std::lock_guard<std::mutex> lock(driver_mutex_);
+            std::scoped_lock lock(driver_mutex_);
             driver_->send_independent_control_command(cmd);
           }
         });
 
     simple_control_command_sub_ = create_subscription<robotiq_3f_interfaces::msg::SimpleControlCommand>(
         "simple_control_command", 10, [&](const std::shared_ptr<robotiq_3f_interfaces::msg::SimpleControlCommand> msg) {
-          std::lock_guard<std::mutex> lock(driver_mutex_);
+          std::scoped_lock lock(driver_mutex_);
           driver_->send_simple_control_command(latest_mode_, msg->position, msg->velocity, msg->force);
         });
 
-    // But slow things get their own callback group
+    // But slow things get their own callback groups
     change_grasping_mode_cb_group_ = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
     change_grasping_mode_service_ = create_service<robotiq_3f_interfaces::srv::ChangeGraspingMode>(
-        "change_grasping_mode", std::bind(&ROSDriver::change_grasping_mode, this, _1, _2), rmw_qos_profile_services_default, change_grasping_mode_cb_group_);
+        "change_grasping_mode", std::bind(&ROSDriver::change_grasping_mode, this, _1, _2),
+        rmw_qos_profile_services_default, change_grasping_mode_cb_group_);
 
     gripper_command_action_cb_group_ = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
     gripper_command_action_ = rclcpp_action::create_server<GripperCommand>(
@@ -159,13 +163,14 @@ public:
           // NOTE: std::bind looks pretty clean here compared to the lambda. I tried some version of the lambda,
           // but they caused things to crash, so I'm sticking with this for now.
           std::thread{ std::bind(&ROSDriver::execute_gripper_command, this, _1), goal_handle }.detach();
-        }, rcl_action_server_get_default_options(), gripper_command_action_cb_group_);
+        },
+        rcl_action_server_get_default_options(), gripper_command_action_cb_group_);
 
     // Create a timer callback at 100HZ to publish the states
-    timer_ = create_wall_timer(10ms, [&]() {
+    timer_ = create_wall_timer(std::chrono::duration<double>(pub_period_seconds_), [&]() {
       FullGripperStatus status{};
       {
-        std::lock_guard<std::mutex> lock(driver_mutex_);
+        std::scoped_lock lock(driver_mutex_);
         status = driver_->get_full_status();
       }
 
@@ -213,14 +218,13 @@ public:
    * @param req
    * @param res
    */
-  void change_grasping_mode(
-      robotiq_3f_interfaces::srv::ChangeGraspingMode::Request::ConstSharedPtr req,
-      robotiq_3f_interfaces::srv::ChangeGraspingMode::Response::SharedPtr res)
+  void change_grasping_mode(robotiq_3f_interfaces::srv::ChangeGraspingMode::Request::ConstSharedPtr req,
+                            robotiq_3f_interfaces::srv::ChangeGraspingMode::Response::SharedPtr res)
   {
     latest_mode_ = mode_msg_to_mode(req->mode);
-    RCLCPP_INFO(kLogger, "Changing grasping mode");
+    RCLCPP_DEBUG(kLogger, "Changing grasping mode");
     {
-      std::lock_guard<std::mutex> lock(driver_mutex_);
+      std::scoped_lock lock(driver_mutex_);
       driver_->send_simple_control_command(latest_mode_, 0, 0, 0);
     }
 
@@ -233,13 +237,12 @@ public:
 
   void execute_gripper_command(const std::shared_ptr<GoalHandle> goal_handle)
   {
-    RCLCPP_INFO(kLogger, "Handling goal");
     auto const cmd = goal_handle->get_goal()->command;
-    RCLCPP_INFO_STREAM(kLogger, "Command: " << cmd.position << ", " << speed_for_gripper_action_ << ", "
-                                            << cmd.max_effort << ", "
-                                            << default_driver_utils::grasping_mode_to_string(latest_mode_));
+    RCLCPP_DEBUG_STREAM(kLogger, "Executing goal: " << cmd.position << ", " << speed_for_gripper_action_ << ", "
+                                                    << cmd.max_effort << ", "
+                                                    << default_driver_utils::grasping_mode_to_string(latest_mode_));
     {
-      std::lock_guard<std::mutex> lock(driver_mutex_);
+      std::scoped_lock lock(driver_mutex_);
       driver_->send_simple_control_command(latest_mode_, cmd.position, speed_for_gripper_action_, cmd.max_effort);
     }
 
@@ -257,7 +260,7 @@ public:
     {
       FullGripperStatus status{};
       {
-        std::lock_guard<std::mutex> lock(driver_mutex_);
+        std::scoped_lock lock(driver_mutex_);
         status = driver_->get_full_status();
       }
       auto const motion_stopped = status.motion_status == MotionStatus::STOPPED_REACHED;
@@ -286,6 +289,7 @@ private:
 
   std::unique_ptr<DefaultDriver> driver_;
   double speed_for_gripper_action_;
+  double pub_period_seconds_;
 
   // These must be listed after the driver to ensure they are destroyed first, and all callbacks stop before
   // driver is destroyed.
@@ -305,9 +309,7 @@ private:
 
 int main(int argc, const char** argv)
 {
-  // Uncomment to set the log level to DEBUG
-  //  rcutils_logging_set_logger_level("DefaultDriver", RCUTILS_LOG_SEVERITY_DEBUG);
-  //  rcutils_logging_set_logger_level("DefaultSerialFactory", RCUTILS_LOG_SEVERITY_DEBUG);
+//  rcutils_logging_set_logger_level("DefaultDriver", RCUTILS_LOG_SEVERITY_DEBUG);
 
   // Initialize ROS
   rclcpp::init(argc, argv);
@@ -318,6 +320,4 @@ int main(int argc, const char** argv)
   rclcpp::executors::MultiThreadedExecutor executor;
   executor.add_node(ros_driver);
   executor.spin();
-
-  RCLCPP_INFO(rclcpp::get_logger("main"), "Done!");
 }

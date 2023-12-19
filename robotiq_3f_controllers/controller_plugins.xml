@@ -1,8 +1,0 @@
-<library path="robotiq_3f_controllers">
-    <class name="robotiq_3f_controllers/Robotiq3fController" type="robotiq_3f_controllers::Robotiq3fController" base_class_type="controller_interface::ControllerInterface">
-        <description>
-            This controller provides both simple and individual control interfaces, and publishes all the extra
-            state information besides the joint states.
-        </description>
-    </class>
-</library>

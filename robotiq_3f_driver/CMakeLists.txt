@@ -8,9 +8,9 @@ set(CMAKE_CXX_STANDARD 20)
 # This module provides installation directories as per the GNU coding standards.
 include(GNUInstallDirs)
 
-if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
-endif ()
+endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
         ament_cmake
@@ -25,9 +25,9 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
         serial
 )
 
-foreach (THIS_PACKAGE_INCLUDE_DEPEND ${THIS_PACKAGE_INCLUDE_DEPENDS})
+foreach(THIS_PACKAGE_INCLUDE_DEPEND ${THIS_PACKAGE_INCLUDE_DEPENDS})
     find_package(${THIS_PACKAGE_INCLUDE_DEPEND} REQUIRED)
-endforeach ()
+endforeach()
 
 # Robotiq 3f driver library.
 
@@ -144,9 +144,9 @@ install(
 # CTest module automatically creates a BUILD_TESTING option that selects
 # whether to enable testing support (ON by default).
 include(CTest)
-if (BUILD_TESTING)
+if(BUILD_TESTING)
     add_subdirectory(tests)
-endif ()
+endif()
 
 ###############################################################################
 # LINTERS

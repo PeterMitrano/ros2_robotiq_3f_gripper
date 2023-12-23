@@ -85,8 +85,11 @@ ObjectDetectionStatus get_scissor_object_status(const uint8_t& reg);
 
 ObjectDetectionStatus double_to_object_detection_status(const double& value);
 double object_detection_status_to_double(const ObjectDetectionStatus& object_detection_status);
+std::string object_detection_status_to_string(const ObjectDetectionStatus& object_detection_status);
 
 GripperFaultStatus get_gripper_fault_status(const uint8_t& reg);
 const std::string fault_status_to_string(const GripperFaultStatus fault_status);
+
+void print_full_status(FullGripperStatus const& status);
 
 };  // namespace robotiq_3f_driver::default_driver_utils

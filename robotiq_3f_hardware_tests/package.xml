@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>epick_hardware_tests</name>
+  <name>robotiq_3f_hardware_tests</name>
   <version>0.0.1</version>
   <description>ROS2 driver for the Robotiq 3f gripper.</description>
   <license>BSD</license>
@@ -11,7 +11,7 @@
 
   <depend>launch</depend>
   <depend>launch_ros</depend>
-  <depend>epick_driver</depend>
+  <depend>robotiq_3f_driver</depend>
 
   <!-- Check code against style conventions using clang-format. -->
   <test_depend>ament_clang_format</test_depend>

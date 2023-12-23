@@ -24,44 +24,6 @@ target_include_directories(test_default_driver
 target_link_libraries(test_default_driver robotiq_3f_driver)
 
 ###############################################################################
-# test_robotiq_3f_gripper_hardware_interface
-
-ament_add_gmock(test_robotiq_3f_gripper_hardware_interface
-    test_robotiq_3f_gripper_hardware_interface.cpp
-)
-target_include_directories(test_robotiq_3f_gripper_hardware_interface
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-)
-target_link_libraries(test_robotiq_3f_gripper_hardware_interface robotiq_3f_driver)
-ament_target_dependencies(test_robotiq_3f_gripper_hardware_interface
-    ros2_control_test_assets
-)
-
-###############################################################################
-# test_default_serial_factory
-
-ament_add_gmock(test_default_serial_factory
-    test_default_serial_factory.cpp
-    mock/mock_serial.hpp
-)
-target_include_directories(test_default_serial_factory
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-)
-target_link_libraries(test_default_serial_factory robotiq_3f_driver)
-
-###############################################################################
-# test_default_driver_factory
-
-ament_add_gmock(test_default_driver_factory
-    test_default_driver_factory.cpp
-    mock/mock_driver.hpp
-)
-target_include_directories(test_default_driver_factory
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-)
-target_link_libraries(test_default_driver_factory robotiq_3f_driver)
-
-###############################################################################
 # test_data_utils
 
 ament_add_gmock(test_data_utils

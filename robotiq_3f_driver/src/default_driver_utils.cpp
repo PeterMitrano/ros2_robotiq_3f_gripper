@@ -435,6 +435,17 @@ double object_detection_status_to_double(const ObjectDetectionStatus& object_det
   }
 }
 
+std::string object_detection_status_to_string(const ObjectDetectionStatus& object_detection_status)
+{
+  static std::map<ObjectDetectionStatus, std::string> map = {
+    { ObjectDetectionStatus::MOVING, "MOVING" },
+    { ObjectDetectionStatus::OBJECT_DETECTED_OPENING, "OBJECT_DETECTED_OPENING" },
+    { ObjectDetectionStatus::OBJECT_DETECTED_CLOSING, "OBJECT_DETECTED_CLOSING" },
+    { ObjectDetectionStatus::AT_REQUESTED_POSITION, "AT_REQUESTED_POSITION" },
+  };
+  return map.at(object_detection_status);
+}
+
 ObjectDetectionStatus double_to_object_detection_status(const double& value)
 {
   static const std::unordered_map<double, ObjectDetectionStatus> map{
@@ -469,6 +480,25 @@ GraspingMode double_to_grasping_mode(const double& value)
                                                              { 2.0, GraspingMode::WIDE },
                                                              { 3.0, GraspingMode::SCISSOR } };
   return map.at(value);
+}
+
+void print_full_status(FullGripperStatus const& status)
+{
+  std::cout << "Status retrieved:" << std::endl;
+
+  std::cout << " - gripper activation action: " << gripper_activation_status_to_string(status.activation_status)
+            << std::endl;
+  std::cout << " - gripper status: " << gripper_status_to_string(status.gripper_status) << std::endl;
+  std::cout << " - mode status: " << grasping_mode_to_string(status.mode_status) << std::endl;
+  std::cout << " - Finger A object detection status: "
+            << object_detection_status_to_string(status.finger_a_object_detection_status) << std::endl;
+  std::cout << " - Finger B object detection status: "
+            << object_detection_status_to_string(status.finger_b_object_detection_status) << std::endl;
+  std::cout << " - Finger C object detection status: "
+            << object_detection_status_to_string(status.finger_c_object_detection_status) << std::endl;
+  std::cout << " - Scissor object detection status: "
+            << object_detection_status_to_string(status.scissor_object_detection_status) << std::endl;
+  std::cout << " - gripper fault status: " << fault_status_to_string(status.fault_status) << std::endl;
 }
 
 }  // namespace robotiq_3f_driver::default_driver_utils

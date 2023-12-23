@@ -337,50 +337,13 @@ private:
 
 int main(int argc, const char** argv)
 {
-//    rcutils_logging_set_logger_level("DefaultDriver", RCUTILS_LOG_SEVERITY_DEBUG);
+  // Initialize ROS
+  rclcpp::init(argc, argv);
 
-    // Initialize ROS
-    rclcpp::init(argc, argv);
+  // Instantiate the ROS Wrapper
+  auto ros_driver = std::make_shared<ROSDriver>();
 
-    // Instantiate the ROS Wrapper
-    auto ros_driver = std::make_shared<ROSDriver>();
-
-    rclcpp::executors::MultiThreadedExecutor executor;
-    executor.add_node(ros_driver);
-    executor.spin();
-
-//  #include <boost/asio.hpp>
-//  boost::asio::io_service io;
-//  boost::asio::serial_port port(io, "/dev/ttyUSB1");
-//  port.set_option(boost::asio::serial_port_base::baud_rate(115200));
-//
-//  std::vector<uint8_t> request{
-//    0x09, 0x10, 0x03, 0xe8, 0x00, 0x03, 0x06, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x72, 0xe1
-//  };
-//
-//  for (int i = 0; i < 100; ++i)
-//  {
-//    boost::asio::write(port, boost::asio::buffer(request));
-//
-//    size_t response_size = 8;
-//    std::vector<uint8_t> read_buffer(response_size);
-//
-//    try
-//    {
-//      auto const t0 = std::chrono::high_resolution_clock::now();
-//      auto const bytes_read = boost::asio::read(port, boost::asio::buffer(read_buffer));
-//      if (bytes_read != response_size)
-//      {
-//        RCLCPP_ERROR_STREAM(kLogger, "Read " << bytes_read << " bytes, expected " << response_size << " bytes.");
-//      }
-//      auto const t1 = std::chrono::high_resolution_clock::now();
-//      auto const dt_us = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
-//      RCLCPP_INFO_STREAM(kLogger, "serial dt:" << dt_us << " us "
-//                                               << " for " << response_size << " bytes.");
-//    }
-//    catch (const boost::system::system_error& e)
-//    {
-//      RCLCPP_ERROR_STREAM(kLogger, "Error reading from serial port: " << e.what());
-//    }
-//  }
+  rclcpp::executors::MultiThreadedExecutor executor;
+  executor.add_node(ros_driver);
+  executor.spin();
 }

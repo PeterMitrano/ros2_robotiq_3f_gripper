@@ -15,7 +15,6 @@ endif()
 set(THIS_PACKAGE_INCLUDE_DEPENDS
         ament_cmake
         control_msgs
-        hardware_interface
         pluginlib
         rclcpp
         rclcpp_action
@@ -38,28 +37,18 @@ add_library(
         include/robotiq_3f_driver/crc_utils.hpp
         include/robotiq_3f_driver/data_utils.hpp
         include/robotiq_3f_driver/default_driver.hpp
-        include/robotiq_3f_driver/default_driver_factory.hpp
         include/robotiq_3f_driver/default_driver_utils.hpp
         include/robotiq_3f_driver/default_serial.hpp
-        include/robotiq_3f_driver/default_serial_factory.hpp
         include/robotiq_3f_driver/driver.hpp
         include/robotiq_3f_driver/driver_exception.hpp
-        include/robotiq_3f_driver/driver_factory.hpp
-        include/robotiq_3f_driver/robotiq_3f_gripper_hardware_interface.hpp
-        include/robotiq_3f_driver/hardware_interface_utils.hpp
         include/robotiq_3f_driver/serial.hpp
-        include/robotiq_3f_driver/serial_factory.hpp
         include/robotiq_3f_driver/visibility_control.hpp
-        src/robotiq_3f_gripper_hardware_interface.cpp
         src/crc_utils.cpp
         src/data_utils.cpp
         src/default_driver.cpp
-        src/default_driver_factory.cpp
         src/default_driver_utils.cpp
         src/fake/fake_driver.cpp
         src/default_serial.cpp
-        src/default_serial_factory.cpp
-        src/hardware_interface_utils.cpp
 )
 target_link_libraries(robotiq_3f_driver atomic)
 target_include_directories(
@@ -74,21 +63,15 @@ ament_target_dependencies(
 )
 
 ###############################################################################
-# PLUGINS
-
-pluginlib_export_plugin_description_file(hardware_interface hardware_interface_plugin.xml)
-
-###############################################################################
 # EXPORTS
 
 # This is necessary to allow this library’s clients to use the syntax
 # target_link_libraries(client <pkg>::<target_name>)
-# target_link_libraries(client stepit_hardware::stepit_hardware)
 # Without this a client cannot find this library.
 # It can take an arbitrary list of targets named as EXPORT in an install call.
-ament_export_targets(
-        robotiq_3f_driver_targets # Must match the EXPORT label below in the install section.
-)
+# Must match the EXPORT label below in the install section.
+ament_export_targets(robotiq_3f_driver_targets)
+
 # Help downstream packages to find transitive dependencies i.e. export all
 # dependencies required by a package to use this library.
 # When a package calls find_package(robotiq_3f_driver), CMake looks for a file
@@ -130,12 +113,18 @@ install(
 
 # Install our library.
 install(
-        TARGETS robotiq_3f_driver robotiq_3f_driver_node
+        TARGETS robotiq_3f_driver
         EXPORT robotiq_3f_driver_targets
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}      # lib
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}      # lib
         RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
+)
+
+# install the executable
+install(
+        TARGETS robotiq_3f_driver_node
+        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}
 )
 
 ###############################################################################

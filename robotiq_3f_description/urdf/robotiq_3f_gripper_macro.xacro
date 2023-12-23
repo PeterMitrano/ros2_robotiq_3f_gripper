@@ -1,17 +1,11 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:include filename="$(find robotiq_3f_description)/urdf/robotiq_3f_gripper_finger_macro.xacro"/>
-    <xacro:include filename="$(find robotiq_3f_description)/urdf/robotiq_3f_driver_ros2_control.xacro"/>
 
     <xacro:macro name="robotiq_3f_gripper"
                  params="prefix:=''
                        use_fake_hardware:=true
                        usb_port:=/dev/ttyUSB0">
-
-        <xacro:robotiq_3f_driver_ros2_control
-                name="robotiq_3f_driver_ros2_control"
-                use_fake_hardware="${use_fake_hardware}"
-                usb_port="${usb_port}"/>
 
         <xacro:robotiq_3f_gripper_finger_articulated prefix="${prefix}finger_b_"/>
         <xacro:robotiq_3f_gripper_finger_articulated prefix="${prefix}finger_a_"/>

@@ -59,3 +59,5 @@ type: control_msgs/action/GripperCommand
 The hardware interface is implemented in the `robotiq_3f_driver` package, and the main executable is the ROS Node `robotiq_3f_driver_node`, also in the hardware package.
 There is also a custiom transmission, which makes from the actuator states (4 motors) to an approximate joint state for the full articulated gripper (11 joints). This is then published on the `joint_states` topic. The URDF describes the gripper with 3 revolute joints per finger, and we simulate the underactuated kinematics using the transmission.
 
+#c Launch the driver and the robot_state_publisher
+ros2 launch robotiq_3f_description robotiq_3f_gripper.launch.xml

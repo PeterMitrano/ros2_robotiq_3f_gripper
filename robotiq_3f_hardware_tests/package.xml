@@ -6,7 +6,6 @@
   <description>ROS2 driver for the Robotiq 3f gripper.</description>
   <license>BSD</license>
   <maintainer email="mitranopeter@gmail.com">Peter Mitrano</maintainer>
-  <author>Peter Mitrano</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

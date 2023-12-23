@@ -6,7 +6,6 @@
   <description>Messages, services and actions for the Robotiq 3f Controller.</description>
   <license>BSD-3-Clause</license>
   <maintainer email="mitranopeter@gmail.com">Peter Mitrano</maintainer>
-  <author>Peter Mitrano</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

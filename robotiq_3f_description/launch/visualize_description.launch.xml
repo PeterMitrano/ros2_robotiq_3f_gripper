@@ -13,4 +13,3 @@
     <node name="rviz" pkg="rviz2" exec="rviz2"/>
 
 </launch>
-

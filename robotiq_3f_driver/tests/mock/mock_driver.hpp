@@ -48,6 +48,5 @@ public:
   MOCK_METHOD(void, send_independent_control_command, (IndependentControlCommand const&), (override));
   MOCK_METHOD(void, send_simple_control_command, (GraspingMode const&, double, double, double), (override));
   MOCK_METHOD(void, clear_faults, (), (override));
-
 };
 }  // namespace robotiq_3f_driver::test

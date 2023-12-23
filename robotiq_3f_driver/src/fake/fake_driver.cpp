@@ -86,4 +86,3 @@ void FakeDriver::clear_faults()
 }
 
 }  // namespace robotiq_3f_driver
-

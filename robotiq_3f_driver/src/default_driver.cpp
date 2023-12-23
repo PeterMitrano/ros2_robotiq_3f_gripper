@@ -94,10 +94,10 @@ std::vector<uint8_t> DefaultDriver::send(const std::vector<uint8_t>& request, si
   {
     try
     {
-      auto const t0 =  std::chrono::high_resolution_clock::now();
+      auto const t0 = std::chrono::high_resolution_clock::now();
       serial_->write(request);
       response = serial_->read(response_size);
-      auto const t1 =  std::chrono::high_resolution_clock::now();
+      auto const t1 = std::chrono::high_resolution_clock::now();
       auto const dt = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
       RCLCPP_DEBUG_STREAM(kLogger, "serial dt: " << dt << " us");
 

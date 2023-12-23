@@ -7,4 +7,3 @@
 
     <node name="robotiq_3f_driver_node" pkg="robotiq_3f_driver" exec="robotiq_3f_driver_node"/>
 </launch>
-

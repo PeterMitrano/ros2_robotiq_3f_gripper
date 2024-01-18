@@ -1,9 +1,12 @@
 <launch>
     <arg name="model" default="$(find-pkg-share robotiq_3f_description)/urdf/robotiq_3f_gripper.xacro"/>
+    <arg name="serial_port" default="/dev/ttyUSB1"/>
 
     <node name="robot_state_publisher" pkg="robot_state_publisher" exec="robot_state_publisher">
         <param name="robot_description" value="$(command 'xacro $(var model)')"/>
     </node>
 
-    <node name="robotiq_3f_driver_node" pkg="robotiq_3f_driver" exec="robotiq_3f_driver_node"/>
+    <node name="robotiq_3f_driver_node" pkg="robotiq_3f_driver" exec="robotiq_3f_driver_node">
+        <param name="serial_port" value="$(var serial_port)"/>
+    </node>
 </launch>

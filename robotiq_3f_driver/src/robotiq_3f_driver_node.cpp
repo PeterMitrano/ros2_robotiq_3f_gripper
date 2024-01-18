@@ -110,12 +110,15 @@ public:
     // ROS params
     declare_parameter<double>("speed_for_gripper_action", 1.0);
     declare_parameter<double>("pub_period_seconds", 0.01);
+    declare_parameter<std::string>("serial_port", "/dev/ttyUSB1");
 
     speed_for_gripper_action_ = get_parameter("speed_for_gripper_action").as_double();
     pub_period_seconds_ = get_parameter("pub_period_seconds").as_double();
+    auto const serial_port = get_parameter("serial_port").as_string();
+
 
     auto serial = std::make_unique<DefaultSerial>();
-    serial->set_port("/dev/ttyUSB1");
+    serial->set_port(serial_port);
     serial->set_baudrate(115200);
     serial->set_timeout(500ms);
 

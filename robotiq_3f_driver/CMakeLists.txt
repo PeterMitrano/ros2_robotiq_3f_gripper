@@ -5,10 +5,7 @@ project(robotiq_3f_driver VERSION 0.0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
-# This module provides installation directories as per the GNU coding standards.
-include(GNUInstallDirs)
-
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
@@ -106,25 +103,20 @@ target_link_libraries(
 # INSTALL
 
 # Install all files of the include folder into the give destination.
-install(
-        DIRECTORY include/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}          # include
-)
+install(DIRECTORY include DESTINATION include)
 
 # Install our library.
 install(
         TARGETS robotiq_3f_driver
         EXPORT robotiq_3f_driver_targets
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}      # lib
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}      # lib
-        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include
+        RUNTIME DESTINATION lib/${PROJECT_NAME}
+        INCLUDES DESTINATION include
 )
 
 # install the executable
 install(
         TARGETS robotiq_3f_driver_node
-        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}
+        RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 ###############################################################################

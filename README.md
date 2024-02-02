@@ -1,5 +1,9 @@
 # ROS2 Robotiq 3F Gripper
 
+This repository started based on the Robotiq EPick driver written by picknik.
+
+If you're a student in the ARMLab, you should use the version of this code here: https://github.com/UM-ARM-Lab/kuka_iiwa_interface/tree/humble
+
 ## ROS API
 
 ### Launch files
